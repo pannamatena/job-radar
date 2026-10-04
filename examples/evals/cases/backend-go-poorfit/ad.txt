@@ -1,0 +1,18 @@
+Senior Backend Engineer (Go) — Cindermaple (Remote, US only)
+
+About the role
+Cindermaple is building high-throughput payment infrastructure. We're hiring a
+Senior Backend Engineer to work deep in our Go services and distributed systems.
+
+You'll
+- Design and build low-latency backend services in Go.
+- Operate large-scale distributed systems: sharding, consensus, high
+  availability, on-call for a sizeable production fleet.
+- Optimise database performance at scale (PostgreSQL, Cassandra).
+
+We're looking for
+- 5+ years of hands-on Go in production.
+- Strong distributed-systems background and large-scale operations experience.
+- No frontend work in this role.
+
+Location: Remote, but you must be based in the United States.

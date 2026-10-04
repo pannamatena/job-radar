@@ -1,0 +1,92 @@
+# ───────────────────────────────────────────────────────────────────────────
+# job-radar configuration — EXAMPLE (fictional persona: "Sam Rivera")
+#
+# This is a complete, working example so you can see the format. Everything in
+# it is made up. `job-radar init` copies this file into your own config folder
+# (by default ./private/config.yaml, which is never committed to git). Edit it
+# to describe the companies YOU want to watch and YOUR location rules.
+#
+# Lines starting with # are comments and are ignored.
+# This is YAML: indentation (spaces, not tabs) matters.
+# ───────────────────────────────────────────────────────────────────────────
+
+# How postings are scored.
+#   rules → the free, keyword-based scorer (no API key, no cost). The default.
+#   llm   → the optional AI scorer (needs your own API key; costs money).
+# The AI scorer is added in a later release; for now, leave this as "rules".
+scorer: rules
+
+# ─── Companies you want to watch ────────────────────────────────────────────
+# Each company has:
+#   name         A label for you (anything you like).
+#   ats          Which job board it uses: greenhouse | lever | ashby | none.
+#   slug         The company's identifier on that board (its "board token").
+#                Required for greenhouse/lever/ashby. Use `job-radar discover
+#                <careers-url>` to find it automatically.
+#   careers_url  The careers page link. Required when ats is "none".
+#   notes        (optional) Free text; the AI scorer can read this later.
+#   filters      (optional) Narrow which roles are kept, applied before scoring:
+#                  departments            keep roles in these departments
+#                  office_ids             keep roles in these office IDs
+#                  location_names         keep roles whose location contains one
+#                                         of these words
+#                  include_remote_open_to also keep remote roles open to one of
+#                                         these regions
+#
+# ⚠️  Replace the examples below with companies you're actually interested in.
+companies:
+  # A company on Greenhouse, filtered to engineering roles in one office.
+  - name: Example Greenhouse Co
+    ats: greenhouse
+    slug: examplegh            # ← replace with a real board token
+    filters:
+      departments: ["Engineering"]
+
+  # A company on Lever.
+  - name: Example Lever Co
+    ats: lever
+    slug: examplelever         # ← replace with a real board token
+
+  # A company on Ashby.
+  - name: Example Ashby Co
+    ats: ashby
+    slug: exampleashby         # ← replace with a real board token
+
+  # A company with no public job-board API. job-radar can't fetch these
+  # directly; you'll cover them with that company's own job-alert emails
+  # (set up in a later release). Listing it here keeps the gap visible in
+  # `job-radar list --companies`.
+  - name: Example No-API Co
+    ats: none
+    careers_url: "https://example.com/careers"
+
+# ─── Your location rules ────────────────────────────────────────────────────
+# Used to decide whether a role's location works for you. Matched against the
+# location text the job board provides.
+location:
+  # The place you can work from day to day.
+  home_area: "Manchester"
+
+  # Location names that count as "home" (the board may phrase it differently).
+  counts_as_home: ["Manchester", "Greater Manchester"]
+
+  # Places that sound close but you do NOT want to commute to. These are never
+  # treated as home even if the name looks nearby.
+  not_home_despite_sounding_close: ["Liverpool", "Leeds", "Sheffield"]
+
+  # Which work models are acceptable, and under what conditions:
+  #   hybrid / onsite : "home_only" (office must be in your home area) or "any"
+  #   remote_open_to  : a remote role is kept only if it's open to one of these
+  #   not_stated      : "keep_if_home_or_unknown" — never drop a role just
+  #                     because it didn't say the work model
+  allowed_work_models:
+    hybrid: home_only
+    onsite: home_only
+    remote_open_to: ["United Kingdom", "UK", "Europe", "EMEA"]
+    not_stated: keep_if_home_or_unknown
+
+# ─── Security-and-privacy notice ────────────────────────────────────────────
+# `job-radar init` sets this once you confirm you've read docs/security-and-privacy.md.
+# Don't edit it by hand.
+notice:
+  accepted: false

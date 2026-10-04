@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#
+# job-radar pre-commit hook — the first line of defence for personal data.
+#
+# It does two things, in order:
+#   1. Refuses to commit any file that holds personal data (anything under
+#      private/, a local database, an .env file, or the personal BUILD_PLAN.md).
+#      These are git-ignored by design; this catches the case where someone
+#      force-adds one with `git add -f`.
+#   2. Runs gitleaks over the staged changes to block accidental secrets
+#      (API keys, app passwords, tokens) before they ever reach a commit.
+#
+# CI re-runs the equivalent checks, but by the time CI sees a public push the
+# data is already out. This hook stops it on your machine first.
+#
+# Installed via `git config core.hooksPath scripts/git-hooks` (see the Makefile
+# `hooks` target and CONTRIBUTING.md).
+
+set -euo pipefail
+
+fail() {
+	echo "✖ pre-commit: $1" >&2
+	exit 1
+}
+
+# 1. Block personal/private files. --diff-filter=ACM = added/copied/modified.
+staged="$(git diff --cached --name-only --diff-filter=ACM)"
+if [ -n "$staged" ]; then
+	blocked="$(printf '%s\n' "$staged" | grep -E '(^private/|^BUILD_PLAN\.md$|(^|/)\.env($|\.)|\.db(\.bak)?$)' || true)"
+	if [ -n "$blocked" ]; then
+		echo "✖ pre-commit: refusing to commit files that hold personal data:" >&2
+		printf '%s\n' "$blocked" | sed 's/^/      /' >&2
+		echo "" >&2
+		echo "  These paths are git-ignored on purpose. If one is staged you probably" >&2
+		echo "  used 'git add -f'. Unstage it with:  git reset HEAD <file>" >&2
+		exit 1
+	fi
+fi
+
+# 2. Secret scan of the staged diff.
+if command -v gitleaks >/dev/null 2>&1; then
+	gitleaks git --pre-commit --staged --redact --no-banner . \
+		|| fail "gitleaks found a potential secret in your staged changes (see above). Remove it, or if it is a false positive add a '# gitleaks:allow' comment on that line."
+else
+	echo "⚠ pre-commit: gitleaks is not installed; skipping the secret scan." >&2
+	echo "  Install it so this safety net works:  brew install gitleaks" >&2
+fi
