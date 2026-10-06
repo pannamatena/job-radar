@@ -25,9 +25,21 @@ profile.cov
 go.work
 go.work.sum
 
+# Build output
+/bin/
+
 # env file
 .env
+.env.*
+!.env.example
+
+# Personal data — NEVER commit (see BUILD_PLAN.md §9a, security-and-privacy.md).
+# The user's config dir, local databases and the (personal) build plan live here.
+private/
+*.db
+*.db.bak
+BUILD_PLAN.md
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/

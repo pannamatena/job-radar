@@ -1,0 +1,20 @@
+Senior Frontend Engineer (Team Lead) — Meadowlark (Manchester, hybrid)
+
+About the role
+We're a 40-person product startup building developer tooling. We're looking for
+a Senior Frontend Engineer to lead a small team of 4 engineers. This is a
+player-coach role: roughly half your time hands-on in our React + TypeScript
+codebase, half growing and supporting the team.
+
+You'll
+- Lead feature delivery across our React/TypeScript web app and its Node.js API.
+- Mentor engineers, run code reviews, and shape our frontend architecture.
+- Work closely with product and design on a shared roadmap.
+
+We're looking for
+- Several years of senior frontend / full-stack experience with React and
+  TypeScript.
+- Some experience leading or mentoring engineers (formal management optional).
+- Comfort across a Node.js backend.
+
+Location: Manchester, hybrid (2 days a week in our city-centre office).
