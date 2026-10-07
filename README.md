@@ -111,16 +111,17 @@ before you set up. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Project status
 
-Built in phases. **Phases 1–2 are complete:** project skeleton, the shared
+Built in phases. **Phases 1–2b are complete:** project skeleton, the shared
 rate-limited HTTP client, config loading, all three job-board sources
 (Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
-pre-filter, and the `init`, `list` and `discover` commands.
+pre-filter, the free rules scorer, and the `init`, `list`, `discover`, `run`
+and `score-one` commands.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Skeleton + Greenhouse source + `init`/`list` | ✅ done |
 | 2 | Lever & Ashby sources, store, dedupe, pre-filter, `discover` | ✅ done |
-| 2b | Free rules scorer | planned |
+| 2b | Free rules scorer + `run`/`score-one` | ✅ done |
 | 3 | LLM scoring agent (optional) | planned |
 | 3b | Evaluation + published cost numbers | planned |
 | 4 | Email alerts & digest, reply-to-vote feedback | planned |

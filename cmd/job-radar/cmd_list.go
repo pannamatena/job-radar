@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -16,7 +15,6 @@ import (
 	"github.com/pannamatena/job-radar/internal/filter"
 	"github.com/pannamatena/job-radar/internal/httpclient"
 	"github.com/pannamatena/job-radar/internal/posting"
-	"github.com/pannamatena/job-radar/internal/sources"
 	"github.com/pannamatena/job-radar/internal/store"
 	"github.com/pannamatena/job-radar/internal/version"
 )
@@ -46,33 +44,8 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	client := httpclient.New(httpclient.Config{UserAgent: version.UserAgent()})
 	pre := filter.New(cfg.PreFilter)
 
-	var kept, dropped []posting.Posting
 	started := time.Now()
-	for _, co := range cfg.Companies {
-		src, err := sources.For(client, co)
-		if err != nil {
-			if errors.Is(err, sources.ErrNoPublicAPI) {
-				fmt.Fprintf(os.Stderr, "  · %s: no public API (covered by job-alert emails in phase 5) — skipping\n", co.Name)
-			} else {
-				fmt.Fprintf(os.Stderr, "  ! %s: %s\n", co.Name, err)
-			}
-			continue
-		}
-		postings, err := src.Fetch(ctx)
-		if err != nil {
-			logger.Warn("source failed", "company", co.Name, "error", err.Error())
-			fmt.Fprintf(os.Stderr, "  ! %s: %s\n", co.Name, err)
-			continue
-		}
-		logger.Info("fetched", "company", co.Name, "source", src.Name(), "postings", len(postings))
-		for _, p := range postings {
-			if pre.Check(p).Keep {
-				kept = append(kept, p)
-			} else {
-				dropped = append(dropped, p)
-			}
-		}
-	}
+	kept, dropped := gatherPostings(ctx, cfg, client, pre, logger)
 
 	// Record what we kept so future runs can distinguish new from already-seen.
 	newIDs := map[string]bool{}
