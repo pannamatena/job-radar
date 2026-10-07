@@ -136,7 +136,7 @@ func TestGreenhouse_RemoteDetection(t *testing.T) {
 func TestGreenhouse_OfficeIDFilter(t *testing.T) {
 	srv := newFixtureServer(t)
 	defer srv.Close()
-	// 4006509008 = Dublin, IE (matches the real watch-list config).
+	// 4006509008 = Anthropic's Dublin, IE office (from the fixture).
 	g := newTestGreenhouse(t, srv, config.CompanyFilters{OfficeIDs: []int64{4006509008}})
 
 	ps, err := g.Fetch(context.Background())

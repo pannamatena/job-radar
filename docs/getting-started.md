@@ -80,14 +80,19 @@ companies:
       departments: ["Engineering"]
 ```
 
-Not sure which board a company uses or what its slug is? A `discover` command
-that works it out from a careers URL arrives in phase 2. For now, you can find
-the slug in the web address of the company's careers page (e.g.
-`boards.greenhouse.io/acme` → slug `acme`).
+Not sure which board a company uses or what its slug is? Let `discover` work it
+out from a careers URL:
 
-> In phase 1, only **Greenhouse** is wired up. Lever and Ashby arrive in phase
-> 2; companies with no public API (`ats: none`) are covered by job-alert emails
-> in phase 5. `list` tells you which it's skipping and why.
+```sh
+./bin/job-radar discover --name "Acme" https://acme.com/careers
+```
+
+It prints a ready-to-paste config entry. See
+[adding-companies.md](adding-companies.md) for details.
+
+> **Greenhouse, Lever and Ashby** are all supported. Companies with no public
+> API (`ats: none`) are covered by job-alert emails in phase 5; `list` tells you
+> which it's skipping and why.
 
 ---
 
@@ -97,15 +102,19 @@ the slug in the web address of the company's careers page (e.g.
 ./bin/job-radar list
 ```
 
-You'll get a table of current roles for your Greenhouse companies:
+You'll get a table of current roles, with roles new since your last run marked
+`NEW`:
 
 ```
-COMPANY  TITLE                               LOCATION    REMOTE   URL
-Acme     Senior Frontend Engineer            Dublin, IE  unknown  https://...
-Acme     Staff Software Engineer, Inference  Dublin, IE  unknown  https://...
+     COMPANY  TITLE                               LOCATION        REMOTE
+NEW  Acme     Senior Frontend Engineer            Manchester, UK  hybrid
+NEW  Acme     Staff Software Engineer, Platform    Manchester, UK  unknown
 
-2 postings.
+Fetched 2 kept, 0 dropped by pre-filter · 2 new, 0 already seen.
 ```
+
+Run it again and those same roles appear without the `NEW` marker
+(`0 new, 2 already seen`) — job-radar remembers what it has shown you.
 
 To just list your watch-list (including companies with no public API):
 

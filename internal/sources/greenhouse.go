@@ -102,7 +102,7 @@ func (g *Greenhouse) Fetch(ctx context.Context) ([]posting.Posting, error) {
 	out := make([]posting.Posting, 0, len(parsed.Jobs))
 	for i := range parsed.Jobs {
 		job := parsed.Jobs[i]
-		if !g.matchesFilters(job) {
+		if !passesFilters(g.filterMeta(job), g.company.Filters) {
 			continue
 		}
 		out = append(out, g.normalise(job))
@@ -110,76 +110,22 @@ func (g *Greenhouse) Fetch(ctx context.Context) ([]posting.Posting, error) {
 	return out, nil
 }
 
-// matchesFilters applies the company's configured filters. Two independent
-// gates must both pass: the department gate (if any departments are configured)
-// and the location gate (if any of office_ids/location_names/include_remote_open_to
-// are configured). Within the location gate the conditions are OR'd, so a role
-// is kept if it is in an allowed office, OR in an allowed location, OR remote
-// and open to one of the listed regions.
-func (g *Greenhouse) matchesFilters(job ghJob) bool {
-	f := g.company.Filters
-
-	if len(f.Departments) > 0 && !departmentMatches(job.Departments, f.Departments) {
-		return false
+// filterMeta extracts the facts the shared company filters act on.
+func (g *Greenhouse) filterMeta(job ghJob) filterMeta {
+	depts := make([]string, 0, len(job.Departments))
+	for _, d := range job.Departments {
+		depts = append(depts, d.Name)
 	}
-
-	if locationGateConfigured(f) && !locationGateMatches(job, f) {
-		return false
+	offices := make([]int64, 0, len(job.Offices))
+	for _, o := range job.Offices {
+		offices = append(offices, o.ID)
 	}
-	return true
-}
-
-func departmentMatches(jobDepts []ghDept, want []string) bool {
-	for _, w := range want {
-		wl := strings.ToLower(strings.TrimSpace(w))
-		if wl == "" {
-			continue
-		}
-		for _, d := range jobDepts {
-			if strings.Contains(strings.ToLower(d.Name), wl) {
-				return true
-			}
-		}
+	return filterMeta{
+		Departments: depts,
+		OfficeIDs:   offices,
+		Location:    job.Location.Name,
+		Remote:      remoteFromLocation(job.Location.Name),
 	}
-	return false
-}
-
-func locationGateConfigured(f config.CompanyFilters) bool {
-	return len(f.OfficeIDs) > 0 || len(f.LocationNames) > 0 || len(f.IncludeRemoteOpenTo) > 0
-}
-
-func locationGateMatches(job ghJob, f config.CompanyFilters) bool {
-	// Office id match.
-	if len(f.OfficeIDs) > 0 {
-		want := make(map[int64]bool, len(f.OfficeIDs))
-		for _, id := range f.OfficeIDs {
-			want[id] = true
-		}
-		for _, o := range job.Offices {
-			if want[o.ID] {
-				return true
-			}
-		}
-	}
-
-	locLower := strings.ToLower(job.Location.Name)
-
-	// Location-name substring match.
-	for _, name := range f.LocationNames {
-		if nl := strings.ToLower(strings.TrimSpace(name)); nl != "" && strings.Contains(locLower, nl) {
-			return true
-		}
-	}
-
-	// Remote role open to one of the configured regions.
-	if len(f.IncludeRemoteOpenTo) > 0 && isRemoteText(locLower) {
-		for _, region := range f.IncludeRemoteOpenTo {
-			if rl := strings.ToLower(strings.TrimSpace(region)); rl != "" && strings.Contains(locLower, rl) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // normalise converts a Greenhouse job into a Posting.

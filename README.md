@@ -25,14 +25,15 @@ own API key.
 > 🖼️ TODO(screenshot): a match-alert email and a digest email, from the
 > fictional persona. Added in phase 4 when email lands.
 
-For now, `job-radar list` prints current postings for your watch-list:
+For now, `job-radar list` prints current postings for your watch-list, marking
+the ones new since you last ran it:
 
 ```
-COMPANY  TITLE                               LOCATION    REMOTE   URL
-Acme     Senior Frontend Engineer            Dublin, IE  unknown  https://...
-Acme     Staff Software Engineer, Inference  Dublin, IE  unknown  https://...
+     COMPANY  TITLE                               LOCATION        REMOTE
+NEW  Acme     Senior Frontend Engineer            Manchester, UK  hybrid
+NEW  Acme     Staff Software Engineer, Platform    Manchester, UK  unknown
 
-2 postings.
+Fetched 2 kept, 0 dropped by pre-filter · 2 new, 0 already seen.
 ```
 
 ---
@@ -40,7 +41,8 @@ Acme     Staff Software Engineer, Inference  Dublin, IE  unknown  https://...
 ## What it does and doesn't do
 
 **It does:**
-- Read jobs from public job-board APIs (Greenhouse now; Lever and Ashby next).
+- Read jobs from public job-board APIs (Greenhouse, Lever and Ashby).
+- Remember what it has already seen (SQLite), so you only hear about new roles.
 - Score roles against *your* tracks, keywords and location rules.
 - Stay a polite guest of every site: identifies itself, rate-limits, backs off
   and caps its own requests ([ADR-0022](docs/decisions/0022-hard-limits-on-outbound-requests-enforced.md)).
@@ -109,14 +111,15 @@ before you set up. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Project status
 
-Built in phases. **Phase 1 is complete:** project skeleton, the shared
-rate-limited HTTP client, config loading, the Greenhouse source, and the `init`
-and `list` commands.
+Built in phases. **Phases 1–2 are complete:** project skeleton, the shared
+rate-limited HTTP client, config loading, all three job-board sources
+(Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
+pre-filter, and the `init`, `list` and `discover` commands.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Skeleton + Greenhouse source + `init`/`list` | ✅ done |
-| 2 | Lever & Ashby sources, store, dedupe, `discover` | planned |
+| 2 | Lever & Ashby sources, store, dedupe, pre-filter, `discover` | ✅ done |
 | 2b | Free rules scorer | planned |
 | 3 | LLM scoring agent (optional) | planned |
 | 3b | Evaluation + published cost numbers | planned |

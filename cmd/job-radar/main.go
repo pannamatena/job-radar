@@ -65,7 +65,7 @@ func run(args []string) int {
 	case "score-one":
 		return stub(cmd, "phase 2b/3 (score a single posting)")
 	case "discover":
-		return stub(cmd, "phase 2 (detect a company's ATS from its careers URL)")
+		return exit(cmdDiscover(ctx, rest))
 	case "eval":
 		return stub(cmd, "phase 3b (evaluation)")
 	case "report":
