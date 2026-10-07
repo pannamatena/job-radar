@@ -28,6 +28,8 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0022](0022-hard-limits-on-outbound-requests-enforced.md) | Hard limits on outbound requests, enforced in one shared HTTP client | Accepted |
 | [ADR-0023](0023-check-sources-twice-a-day-retrying.md) | Check sources twice a day, retrying only what failed | Accepted |
 | [ADR-0024](0024-email-only-notifications-in-v1-push.md) | Email-only notifications in V1; push notifications deferred to V2 | Accepted |
+| [ADR-0025](0025-score-fit-independently-of-posting-age.md) | Score fit independently of posting age; alert on "new to you", not "newly posted" | Accepted |
+| [ADR-0026](0026-cross-source-duplicate-matching.md) | Matching the same role across sources — title first, then body; prefer the ATS board | Accepted |
 
 ## In one sentence each
 
@@ -55,3 +57,5 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0022](0022-hard-limits-on-outbound-requests-enforced.md)** — I put the politeness rules in one place that every request has to go through, so no config mistake or bug can turn the tool into a nuisance.
 - **[ADR-0023](0023-check-sources-twice-a-day-retrying.md)** — I matched how often we check to how often the data actually changes, and only retried what failed.
 - **[ADR-0024](0024-email-only-notifications-in-v1-push.md)** — When every push option came with a security, cost or platform catch, I shipped V1 on email, which works everywhere, and kept the interface ready for push in V2.
+- **[ADR-0025](0025-score-fit-independently-of-posting-age.md)** — A real-world miss showed I'd tied relevance to recency, so I separated 'is it a good fit?' from 'is it new to me?', and turned the miss into a test case.
+- **[ADR-0026](0026-cross-source-duplicate-matching.md)** — The same job shows up in several places with identical wording, so I gate on the title, confirm with the body, prefer the company's own board as the source of truth, and when in doubt I'd rather show a duplicate than hide a role.
