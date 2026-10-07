@@ -58,6 +58,10 @@ type Config struct {
 	// Location holds the user's location rules (used by the pre-filter).
 	Location Location `yaml:"location"`
 
+	// PreFilter holds the cheap title/keyword rules that drop obvious misses
+	// before scoring. Empty lists fall back to sensible software-role defaults.
+	PreFilter PreFilter `yaml:"prefilter"`
+
 	// Notice records that the user has read the security-and-privacy notice.
 	Notice Notice `yaml:"notice"`
 
@@ -104,6 +108,21 @@ type AllowedWorkModels struct {
 	Onsite       string   `yaml:"onsite,omitempty"`
 	RemoteOpenTo []string `yaml:"remote_open_to,omitempty"`
 	NotStated    string   `yaml:"not_stated,omitempty"`
+}
+
+// PreFilter configures the deterministic pre-filter that runs before scoring.
+// It is deliberately cautious: the default is to keep a posting, and it only
+// drops ones it is sure about (ADR-0012). A posting's age is never considered
+// (ADR-0025). All matching is case-insensitive and on whole words.
+type PreFilter struct {
+	// TitleKeep rescues a title that would otherwise match TitleDrop. Rarely
+	// needed because the default is already to keep.
+	TitleKeep []string `yaml:"title_keep,omitempty"`
+	// TitleDrop drops titles that are clearly not for you (e.g. junior, director).
+	TitleDrop []string `yaml:"title_drop,omitempty"`
+	// NotSoftware drops non-software-engineering roles by keyword, matched in the
+	// title or the description (e.g. railway, chartered engineer).
+	NotSoftware []string `yaml:"not_software,omitempty"`
 }
 
 // Notice records the user's acknowledgement of docs/security-and-privacy.md.

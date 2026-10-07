@@ -25,7 +25,7 @@ location:
   counts_as_home: ["Manchester", "Greater Manchester"]
   allowed_work_models:
     hybrid: home_only
-    remote_open_to: ["Ireland", "EMEA"]
+    remote_open_to: ["United Kingdom", "EMEA"]
     not_stated: keep_if_home_or_unknown
 notice:
   accepted: true

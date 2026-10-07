@@ -1,0 +1,290 @@
+{
+ "jobs": [
+  {
+   "id": "0be1b52c-2401-4ae2-b7fc-5d018c1ff96f",
+   "title": "Technical Customer Success Manager - EMEA",
+   "department": "Sales & Customer Success",
+   "team": "Customer Success",
+   "employmentType": "FullTime",
+   "location": "Remote (EMEA)",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-09-18T08:41:19.683+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "European Union"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/0be1b52c-2401-4ae2-b7fc-5d018c1ff96f",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/0be1b52c-2401-4ae2-b7fc-5d018c1ff96f/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "43dbf072-0fc1-48c9-8c1e-7416db7d4a14",
+   "title": "ClickHouse Operations Engineer ",
+   "department": "Engineering",
+   "team": "ClickHouse",
+   "employmentType": "FullTime",
+   "location": "Remote",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-25T07:00:51.155+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "USA"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/43dbf072-0fc1-48c9-8c1e-7416db7d4a14",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/43dbf072-0fc1-48c9-8c1e-7416db7d4a14/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "20ab9628-20ff-4ae3-bd6a-46ae7e9dc6b8",
+   "title": "Product Engineer",
+   "department": "Engineering",
+   "team": "Product Engineering",
+   "employmentType": "FullTime",
+   "location": "Remote",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-09-24T16:56:29.377+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "USA"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/20ab9628-20ff-4ae3-bd6a-46ae7e9dc6b8",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/20ab9628-20ff-4ae3-bd6a-46ae7e9dc6b8/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "8dc3f33a-b930-4c54-b4c4-3e6bd2ff28d3",
+   "title": "AI Research Engineer",
+   "department": "Engineering",
+   "team": "PostHog AI",
+   "employmentType": "FullTime",
+   "location": "Hybrid (UK)",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-08-18T19:01:08.379+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Hybrid",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "",
+     "addressCountry": "United Kingdom",
+     "addressLocality": "Cambridge"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/8dc3f33a-b930-4c54-b4c4-3e6bd2ff28d3",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/8dc3f33a-b930-4c54-b4c4-3e6bd2ff28d3/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog is the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.</p><p style=\"min-height:1.5em\">We started with open-source product a …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog is the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Combinator's W20 cohort https://posthog.com/handbook/story. We've s …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "1464036f-94d5-4dbd-aef8-fe99246a26d4",
+   "title": "Site Reliability Engineer (US - Pacific time)",
+   "department": "Engineering",
+   "team": "Cloud Foundations",
+   "employmentType": "FullTime",
+   "location": "San Francisco, CA",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [
+    {
+     "location": "Remote (US)",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    }
+   ],
+   "publishedAt": "2026-08-06T08:48:53.622+00:00",
+   "isListed": true,
+   "isRemote": false,
+   "workplaceType": "OnSite",
+   "address": {
+    "postalAddress": {
+     "addressRegion": "California",
+     "addressCountry": "United States",
+     "addressLocality": "San Francisco"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/1464036f-94d5-4dbd-aef8-fe99246a26d4",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/1464036f-94d5-4dbd-aef8-fe99246a26d4/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "3c592b84-8b34-4ae4-ae23-cadce8f2212d",
+   "title": "Product Manager (ex-founder or ex-product engineer)",
+   "department": "Product Management",
+   "team": "Product Management",
+   "employmentType": "FullTime",
+   "location": "Remote",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-10-06T12:22:51.673+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "US | EU"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/3c592b84-8b34-4ae4-ae23-cadce8f2212d",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/3c592b84-8b34-4ae4-ae23-cadce8f2212d/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "8854fb74-8457-40cd-bc10-60125a0c0cd4",
+   "title": "Technical Customer Success Manager - Americas",
+   "department": "Sales & Customer Success",
+   "team": "Customer Success",
+   "employmentType": "FullTime",
+   "location": "Remote",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-06-26T07:37:48.731+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "USA"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/8854fb74-8457-40cd-bc10-60125a0c0cd4",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/8854fb74-8457-40cd-bc10-60125a0c0cd4/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "36d5ce14-851c-450f-879a-45cbb896225e",
+   "title": "Security Engineer ",
+   "department": "Engineering",
+   "team": "Security",
+   "employmentType": "FullTime",
+   "location": "Remote (EMEA)",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [
+    {
+     "location": "Remote (UK)",
+     "address": {
+      "postalAddress": {
+       "addressRegion": "Remote (UK)",
+       "addressCountry": "United Kingdom",
+       "addressLocality": ""
+      }
+     }
+    }
+   ],
+   "publishedAt": "2026-09-14T10:01:44.488+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "European Union"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/36d5ce14-851c-450f-879a-45cbb896225e",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/36d5ce14-851c-450f-879a-45cbb896225e/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  },
+  {
+   "id": "2a78f2f8-4fd3-413b-9c7d-55db568e68c1",
+   "title": "Finance Manager, Revenue Accounting",
+   "department": "Finance",
+   "team": "Finance",
+   "employmentType": "FullTime",
+   "location": "Remote (US)",
+   "shouldDisplayCompensationOnJobPostings": false,
+   "secondaryLocations": [],
+   "publishedAt": "2026-09-14T22:39:48.748+00:00",
+   "isListed": true,
+   "isRemote": true,
+   "workplaceType": "Remote",
+   "address": {
+    "postalAddress": {
+     "addressCountry": "United States"
+    }
+   },
+   "jobUrl": "https://jobs.ashbyhq.com/posthog/2a78f2f8-4fd3-413b-9c7d-55db568e68c1",
+   "applyUrl": "https://jobs.ashbyhq.com/posthog/2a78f2f8-4fd3-413b-9c7d-55db568e68c1/application",
+   "descriptionHtml": "<h2>About PostHog</h2><p style=\"min-height:1.5em\">Product development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.</p><p style=\"min-height:1.5em\">PostHog makes products <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://posthog.com/self-driving\">self-driving</a>. It's the only platform that acts like a co-pil …[trimmed for fixture]",
+   "descriptionPlain": "ABOUT POSTHOG\n\nProduct development used to mean manually writing code, running analysis, diagnosing bugs, and rolling out changes using dozens of tools.\n\nPostHog makes products self-driving https://posthog.com/self-driving. It's the only platform that acts like a co-pilot for you (and your AI agents) to do it all – autonomously.\n\nWe started with open-source product analytics, launched out of Y Com …[trimmed for fixture]",
+   "compensation": {
+    "compensationTierSummary": null,
+    "scrapeableCompensationSalarySummary": null,
+    "compensationTiers": [],
+    "summaryComponents": []
+   }
+  }
+ ],
+ "apiVersion": "1"
+}
