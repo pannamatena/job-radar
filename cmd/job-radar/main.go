@@ -57,13 +57,14 @@ func run(args []string) int {
 		printUsage(os.Stdout)
 		return 0
 
-	// Stubs for commands added in later phases.
 	case "run":
-		return stub(cmd, "phase 2b (fetch + score + notify)")
+		return exit(cmdRun(ctx, logger, rest))
+	case "score-one":
+		return exit(cmdScoreOne(ctx, rest))
+
+	// Stubs for commands added in later phases.
 	case "digest":
 		return stub(cmd, "phase 4 (email digest)")
-	case "score-one":
-		return stub(cmd, "phase 2b/3 (score a single posting)")
 	case "discover":
 		return exit(cmdDiscover(ctx, rest))
 	case "eval":

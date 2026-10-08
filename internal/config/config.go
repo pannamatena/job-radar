@@ -62,6 +62,9 @@ type Config struct {
 	// before scoring. Empty lists fall back to sensible software-role defaults.
 	PreFilter PreFilter `yaml:"prefilter"`
 
+	// Rules configures the free rules scorer (used when scorer is "rules").
+	Rules Rules `yaml:"rules"`
+
 	// Notice records that the user has read the security-and-privacy notice.
 	Notice Notice `yaml:"notice"`
 
@@ -125,6 +128,34 @@ type PreFilter struct {
 	NotSoftware []string `yaml:"not_software,omitempty"`
 }
 
+// Rules drives the free, deterministic rules scorer (phase 2b). Score = 1 +
+// (2 if a track title matches) + up to 2 for must_have_any + up to 1 for
+// nice_to_have − 1 per matched red flag, clamped to 1–5.
+type Rules struct {
+	// Tracks maps a track name (e.g. "manager") to its title patterns.
+	Tracks map[string]Track `yaml:"tracks"`
+	// MustHaveAny keywords each add a small boost (capped).
+	MustHaveAny []string `yaml:"must_have_any"`
+	// NiceToHave keywords add a smaller boost (capped).
+	NiceToHave []string `yaml:"nice_to_have"`
+	// RedFlags maps a flag name to the keyword phrases that trigger it; each
+	// distinct flag matched lowers the score by one and is recorded.
+	RedFlags map[string][]string `yaml:"red_flags"`
+	// Thresholds set the alert and digest score cut-offs.
+	Thresholds Thresholds `yaml:"thresholds"`
+}
+
+// Track is one career track's title patterns.
+type Track struct {
+	Titles []string `yaml:"titles"`
+}
+
+// Thresholds are the score cut-offs for alerts and the digest.
+type Thresholds struct {
+	Alert  int `yaml:"alert"`
+	Digest int `yaml:"digest"`
+}
+
 // Notice records the user's acknowledgement of docs/security-and-privacy.md.
 type Notice struct {
 	Accepted bool   `yaml:"accepted"`
@@ -184,6 +215,12 @@ func Parse(data []byte) (*Config, error) {
 func (c *Config) applyDefaults() {
 	if strings.TrimSpace(c.Scorer) == "" {
 		c.Scorer = ScorerRules
+	}
+	if c.Rules.Thresholds.Alert == 0 {
+		c.Rules.Thresholds.Alert = 4
+	}
+	if c.Rules.Thresholds.Digest == 0 {
+		c.Rules.Thresholds.Digest = 3
 	}
 }
 

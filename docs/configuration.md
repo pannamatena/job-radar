@@ -34,6 +34,10 @@ Your [location rules](#location-fields), used by the pre-filter.
 The [pre-filter rules](#pre-filter-fields) that drop obvious non-matches before
 scoring. Optional — sensible software-role defaults are used if you omit it.
 
+### `rules`
+The [rules-scorer settings](#rules-fields) used when `scorer` is `rules`: your
+tracks, keyword boosts, red flags and thresholds.
+
 ### `notice`
 Records that you've read the security-and-privacy notice. Set by `job-radar init`;
 you don't normally edit it. See [notice](#notice-fields).
@@ -83,9 +87,9 @@ Under `location:`:
 
 | Field | What it does | Values |
 |---|---|---|
-| `hybrid` | When a hybrid role is acceptable. | `home_only` (office in your home area) or `any` |
-| `onsite` | When an on-site role is acceptable. | `home_only` or `any` |
-| `remote_open_to` | A remote role is kept only if open to one of these regions. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
+| `hybrid` | When a hybrid role is acceptable. `home_only` means the office must be one of your `counts_as_home` cities; otherwise the role is flagged `outside_home_area` and capped at 2. | `home_only` or `any` |
+| `onsite` | When an on-site role is acceptable (same rule as hybrid). | `home_only` or `any` |
+| `remote_open_to` | The regions/territories **you** can work remotely in. A remote role that names a region *not* in this list (e.g. a US-only or UK-only role) is flagged `outside_eligible_region` and capped at 2; a bare "Remote" with no region is kept. Leave empty to accept any remote role. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
 | `not_stated` | What to do when the work model isn't stated. | `keep_if_home_or_unknown` (never drop just for a missing model) |
 
 > Location rules are fully applied by the rules scorer in phase 2b. In phase 2
@@ -111,6 +115,37 @@ built-in software-role defaults.
 Precedence: a `not_software` match drops (even over `title_keep`); otherwise a
 `title_keep` match keeps; otherwise a `title_drop` match drops; otherwise the
 posting is kept.
+
+---
+
+## Rules fields
+
+Under `rules:` — these drive the free scorer (see [rules-scorer.md](rules-scorer.md)
+for the full walkthrough). The score formula is:
+
+```
+1  + 2 if a track title matches
+   + up to 2 for must_have_any matches (+1 each, capped)
+   + up to 1 for nice_to_have matches
+   − 1 per distinct red flag matched
+clamped to 1–5. A posting's age never changes the score (ADR-0025).
+```
+
+| Field | What it does |
+|---|---|
+| `tracks` | A map of track name → `titles`. A posting whose title matches a track's `titles` gets the +2 track boost and is tagged with that track. |
+| `titles` | (inside each track) The title phrases for that track, e.g. `["engineering manager", "head of engineering"]`. |
+| `must_have_any` | Keywords that each add a small boost when found in the title or description (capped). |
+| `nice_to_have` | Keywords that add a smaller boost (capped). |
+| `red_flags` | A map of flag name → trigger phrases. Each distinct flag found lowers the score by one and is recorded on the posting. |
+| `thresholds` | The score cut-offs — see below. |
+
+### `thresholds`
+
+| Field | What it does | Default |
+|---|---|---|
+| `alert` | Score at or above which a posting is a strong match (alerted). | `4` |
+| `digest` | Score at or above which a posting appears in the daily digest. | `3` |
 
 ---
 

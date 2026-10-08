@@ -85,8 +85,27 @@ location:
     remote_open_to: ["United Kingdom", "UK", "Europe", "EMEA"]
     not_stated: keep_if_home_or_unknown
 
+# ─── How roles are scored (the free rules scorer) ───────────────────────────
+# Score = 1 + (2 if a title matches a track) + up to 2 for must_have_any
+#         + up to 1 for nice_to_have − 1 per red_flag, clamped to 1–5.
+# Run `job-radar score-one <id>` to see the breakdown for any posting.
+rules:
+  tracks:                       # a title match here is the strongest signal
+    manager:
+      titles: ["engineering manager", "head of engineering", "software development manager"]
+    lead_ic:
+      titles: ["tech lead", "team lead", "staff engineer", "senior frontend", "senior full stack"]
+    tpm:
+      titles: ["technical program manager", "engineering program manager"]
+  must_have_any: ["react", "typescript", "frontend", "full stack", "node"]   # +boost
+  nice_to_have:  ["startup", "scaleup", "remote", "hybrid"]                   # small +boost
+  red_flags:                    # each lowers the score and sets a flag
+    wants_go:           ["golang", "hands-on go"]
+    cs_degree_required: ["degree in computer science required"]
+  thresholds: { alert: 4, digest: 3 }
+
 # ─── Security-and-privacy notice ────────────────────────────────────────────
-# `job-radar init` sets this once you confirm you've read docs/security-and-privacy.md.
+# Set by `job-radar init` once you confirm you've read docs/security-and-privacy.md.
 # Don't edit it by hand.
 notice:
   accepted: false

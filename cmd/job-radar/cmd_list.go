@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -16,7 +15,6 @@ import (
 	"github.com/pannamatena/job-radar/internal/filter"
 	"github.com/pannamatena/job-radar/internal/httpclient"
 	"github.com/pannamatena/job-radar/internal/posting"
-	"github.com/pannamatena/job-radar/internal/sources"
 	"github.com/pannamatena/job-radar/internal/store"
 	"github.com/pannamatena/job-radar/internal/version"
 )
@@ -29,6 +27,7 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	home := fs.String("home", config.Home(), "config directory to read")
 	companiesOnly := fs.Bool("companies", false, "list the watch-list companies instead of their postings")
 	showAll := fs.Bool("all", false, "also show postings the pre-filter dropped")
+	showIDs := fs.Bool("ids", false, "show each posting's id (for `score-one`)")
 	noStore := fs.Bool("no-store", false, "don't record this run in the database (read-only)")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -46,33 +45,8 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	client := httpclient.New(httpclient.Config{UserAgent: version.UserAgent()})
 	pre := filter.New(cfg.PreFilter)
 
-	var kept, dropped []posting.Posting
 	started := time.Now()
-	for _, co := range cfg.Companies {
-		src, err := sources.For(client, co)
-		if err != nil {
-			if errors.Is(err, sources.ErrNoPublicAPI) {
-				fmt.Fprintf(os.Stderr, "  · %s: no public API (covered by job-alert emails in phase 5) — skipping\n", co.Name)
-			} else {
-				fmt.Fprintf(os.Stderr, "  ! %s: %s\n", co.Name, err)
-			}
-			continue
-		}
-		postings, err := src.Fetch(ctx)
-		if err != nil {
-			logger.Warn("source failed", "company", co.Name, "error", err.Error())
-			fmt.Fprintf(os.Stderr, "  ! %s: %s\n", co.Name, err)
-			continue
-		}
-		logger.Info("fetched", "company", co.Name, "source", src.Name(), "postings", len(postings))
-		for _, p := range postings {
-			if pre.Check(p).Keep {
-				kept = append(kept, p)
-			} else {
-				dropped = append(dropped, p)
-			}
-		}
-	}
+	kept, dropped := gatherPostings(ctx, cfg, client, pre, logger)
 
 	// Record what we kept so future runs can distinguish new from already-seen.
 	newIDs := map[string]bool{}
@@ -90,7 +64,7 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	if *showAll {
 		toShow = append(append([]posting.Posting{}, kept...), dropped...)
 	}
-	printPostings(toShow, newIDs)
+	printPostings(toShow, newIDs, *showIDs)
 
 	total, perHost := client.Stats()
 	fmt.Printf("\nFetched %d kept, %d dropped by pre-filter", len(kept), len(dropped))
@@ -144,7 +118,7 @@ func printCompanies(cfg *config.Config) {
 	tw.Flush()
 }
 
-func printPostings(ps []posting.Posting, newIDs map[string]bool) {
+func printPostings(ps []posting.Posting, newIDs map[string]bool, showIDs bool) {
 	if len(ps) == 0 {
 		fmt.Println("No postings found. (Check your company slugs and filters.)")
 		return
@@ -157,13 +131,24 @@ func printPostings(ps []posting.Posting, newIDs map[string]bool) {
 	})
 
 	tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-	fmt.Fprintln(tw, "\tCOMPANY\tTITLE\tLOCATION\tREMOTE")
+	if showIDs {
+		fmt.Fprintln(tw, "\tID\tCOMPANY\tTITLE\tLOCATION\tREMOTE")
+	} else {
+		fmt.Fprintln(tw, "\tCOMPANY\tTITLE\tLOCATION\tREMOTE")
+	}
 	for _, p := range ps {
 		marker := ""
 		if newIDs[p.ID] {
 			marker = "NEW"
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", marker, p.Company, p.Title, p.Location, p.Remote)
+		if showIDs {
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n", marker, p.ID, p.Company, p.Title, p.Location, p.Remote)
+		} else {
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", marker, p.Company, p.Title, p.Location, p.Remote)
+		}
 	}
 	tw.Flush()
+	if !showIDs {
+		fmt.Println("\n(tip: `job-radar list --ids` shows each posting's id for `score-one`)")
+	}
 }

@@ -242,6 +242,47 @@ func (s *Store) SaveFetched(ctx context.Context, postings []posting.Posting, now
 	return newIDs, nil
 }
 
+// ErrNotFound is returned by GetByID when no posting has that id.
+var ErrNotFound = fmt.Errorf("store: posting not found")
+
+// GetByID loads a single stored posting by its id (used by `score-one`).
+func (s *Store) GetByID(ctx context.Context, id string) (posting.Posting, error) {
+	return s.getBy(ctx, "id", id)
+}
+
+// GetByURL loads a single stored posting by its public URL, so `score-one` can
+// accept a link pasted from the run output.
+func (s *Store) GetByURL(ctx context.Context, url string) (posting.Posting, error) {
+	return s.getBy(ctx, "url", url)
+}
+
+// getBy loads a posting by a unique column (id or url).
+func (s *Store) getBy(ctx context.Context, column, value string) (posting.Posting, error) {
+	var p posting.Posting
+	var remote, postedAt, rawJSON sql.NullString
+	// column is a fixed internal literal ("id" or "url"), never user input.
+	query := `SELECT id, source, company, title, location, remote, url, description_text, posted_at, raw_json
+		FROM postings WHERE ` + column + ` = ?`
+	err := s.db.QueryRowContext(ctx, query, value).
+		Scan(&p.ID, &p.Source, &p.Company, &p.Title, &p.Location, &remote, &p.URL, &p.DescriptionText, &postedAt, &rawJSON)
+	if err == sql.ErrNoRows {
+		return posting.Posting{}, ErrNotFound
+	}
+	if err != nil {
+		return posting.Posting{}, fmt.Errorf("store: loading posting by %s=%q: %w", column, value, err)
+	}
+	p.Remote = posting.RemoteKind(remote.String)
+	if rawJSON.Valid {
+		p.RawJSON = []byte(rawJSON.String)
+	}
+	if postedAt.Valid {
+		if t, perr := time.Parse(time.RFC3339, postedAt.String); perr == nil {
+			p.PostedAt = &t
+		}
+	}
+	return p, nil
+}
+
 // CountCompanyPostings returns how many postings we have ever recorded for a
 // company. Zero means this is the first time we are seeing that company, which
 // later phases use to send a first-run batch summary instead of many alerts.
