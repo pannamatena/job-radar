@@ -44,10 +44,30 @@ broad almost everything scores high.
 distinguish *your* roles.
 
 **red_flags** — be honest about your gaps. These keep the score truthful instead
-of flattering. Use phrases specific enough not to misfire:
+of flattering.
+
+A red flag's only job is to **pull down a role that would otherwise score
+high** — so only list the catches that can hide *inside an otherwise attractive
+role*. Example: a React/TypeScript manager role at a startup that also wants
+hands-on Go is a near-miss worth flagging (`wants_go`). But you don't need to
+list every language or skill you lack: a role built around one of those won't
+match your tracks or `must_have_any` in the first place, so it already scores 1
+— there's nothing to pull down, and flagging it just adds noise (or risks
+docking a good role that mentions the word in passing).
+
+Each red flag is `name: [phrases]`. The name is your label; the phrases are
+matched (whole word) against the title and body; each distinct flag found is
+−1 and is recorded on the posting. Use phrases specific enough not to misfire:
 
 🚫 `wants_go: ["go"]` — matches "go-getter", "go-to", "ongoing".
 ✅ `wants_go: ["golang", "hands-on go", "strong go"]`
+
+Watch out for flags that misfire on roles you *could* take. A broad
+`["authorised to work", "visa sponsorship"]` would also dock a local role that's
+perfectly fine for you — whether that line is a dealbreaker depends on the
+role's location versus where you're eligible, which your `remote_open_to`
+location rule already handles. Flags work best for **unconditional**
+dealbreakers (e.g. a required security clearance or citizenship you don't hold).
 
 > Tip: after editing, run `job-radar score-one <id>` on a few roles you know
 > well and check the scores match your gut. Adjust the words until they do.
