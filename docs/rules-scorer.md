@@ -37,9 +37,11 @@ won't match "maintain" and `node` matches "Node.js".
 To see exactly why a posting got its score:
 
 ```sh
-job-radar score-one <posting_id>
+job-radar score-one <posting-id-or-url>
 ```
-(Get ids from `job-radar list`.) You'll see the breakdown:
+Get an id from `job-radar list --ids` or the `run` output, or just paste the
+posting's URL. (If an id contains a space — some Ashby slugs do — quote it, or
+use the URL.) You'll see the breakdown:
 
 ```
 Score:      4/5  (rules)

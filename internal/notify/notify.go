@@ -16,6 +16,7 @@ import (
 // Alert is one posting worth telling the user about, flattened to display
 // fields so notifiers don't depend on internal types.
 type Alert struct {
+	ID        string // stable posting id, e.g. for `score-one`
 	Company   string
 	Title     string
 	Location  string
@@ -63,6 +64,9 @@ func (t *Terminal) Send(_ context.Context, subject string, alerts []Alert) error
 		}
 		if a.Gap != "" {
 			fmt.Fprintf(t.W, "     gap: %s\n", a.Gap)
+		}
+		if a.ID != "" {
+			fmt.Fprintf(t.W, "     id:  %s\n", a.ID)
 		}
 		if a.URL != "" {
 			fmt.Fprintf(t.W, "     %s\n", a.URL)

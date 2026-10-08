@@ -81,6 +81,7 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) error {
 			continue
 		}
 		alerts = append(alerts, notify.Alert{
+			ID:      s.p.ID,
 			Company: s.p.Company, Title: s.p.Title, Location: s.p.Location,
 			Track: s.r.Track, WorkModel: s.r.WorkModel, Score: s.r.Score,
 			Why: s.r.Why, Gap: s.r.Gap, URL: s.p.URL, Flags: s.r.Flags,

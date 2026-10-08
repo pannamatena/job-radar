@@ -27,6 +27,7 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	home := fs.String("home", config.Home(), "config directory to read")
 	companiesOnly := fs.Bool("companies", false, "list the watch-list companies instead of their postings")
 	showAll := fs.Bool("all", false, "also show postings the pre-filter dropped")
+	showIDs := fs.Bool("ids", false, "show each posting's id (for `score-one`)")
 	noStore := fs.Bool("no-store", false, "don't record this run in the database (read-only)")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -63,7 +64,7 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	if *showAll {
 		toShow = append(append([]posting.Posting{}, kept...), dropped...)
 	}
-	printPostings(toShow, newIDs)
+	printPostings(toShow, newIDs, *showIDs)
 
 	total, perHost := client.Stats()
 	fmt.Printf("\nFetched %d kept, %d dropped by pre-filter", len(kept), len(dropped))
@@ -117,7 +118,7 @@ func printCompanies(cfg *config.Config) {
 	tw.Flush()
 }
 
-func printPostings(ps []posting.Posting, newIDs map[string]bool) {
+func printPostings(ps []posting.Posting, newIDs map[string]bool, showIDs bool) {
 	if len(ps) == 0 {
 		fmt.Println("No postings found. (Check your company slugs and filters.)")
 		return
@@ -130,13 +131,24 @@ func printPostings(ps []posting.Posting, newIDs map[string]bool) {
 	})
 
 	tw := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
-	fmt.Fprintln(tw, "\tCOMPANY\tTITLE\tLOCATION\tREMOTE")
+	if showIDs {
+		fmt.Fprintln(tw, "\tID\tCOMPANY\tTITLE\tLOCATION\tREMOTE")
+	} else {
+		fmt.Fprintln(tw, "\tCOMPANY\tTITLE\tLOCATION\tREMOTE")
+	}
 	for _, p := range ps {
 		marker := ""
 		if newIDs[p.ID] {
 			marker = "NEW"
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", marker, p.Company, p.Title, p.Location, p.Remote)
+		if showIDs {
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n", marker, p.ID, p.Company, p.Title, p.Location, p.Remote)
+		} else {
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", marker, p.Company, p.Title, p.Location, p.Remote)
+		}
 	}
 	tw.Flush()
+	if !showIDs {
+		fmt.Println("\n(tip: `job-radar list --ids` shows each posting's id for `score-one`)")
+	}
 }

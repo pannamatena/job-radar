@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pannamatena/job-radar/internal/config"
+	"github.com/pannamatena/job-radar/internal/posting"
 	"github.com/pannamatena/job-radar/internal/scorer"
 	"github.com/pannamatena/job-radar/internal/store"
 )
@@ -22,9 +23,9 @@ func cmdScoreOne(ctx context.Context, args []string) error {
 		return err
 	}
 	if fs.NArg() != 1 {
-		return fmt.Errorf("usage: job-radar score-one <posting_id>  (get ids from `job-radar list`)")
+		return fmt.Errorf("usage: job-radar score-one <posting-id-or-url>  (ids come from `job-radar list --ids` or the `run` output)")
 	}
-	id := fs.Arg(0)
+	arg := fs.Arg(0)
 
 	cfg, err := config.Load(*home)
 	if err != nil {
@@ -37,9 +38,15 @@ func cmdScoreOne(ctx context.Context, args []string) error {
 	}
 	defer st.Close()
 
-	p, err := st.GetByID(ctx, id)
+	// Accept either a posting id or a pasted URL.
+	var p posting.Posting
+	if strings.Contains(arg, "://") {
+		p, err = st.GetByURL(ctx, arg)
+	} else {
+		p, err = st.GetByID(ctx, arg)
+	}
 	if err == store.ErrNotFound {
-		return fmt.Errorf("no posting with id %q in the database yet — run `job-radar run` (or `list`) first, then copy an id from the output", id)
+		return fmt.Errorf("no posting matching %q in the database yet — run `job-radar run` (or `list`) first, then copy an id (from `list --ids`) or a URL from the output", arg)
 	}
 	if err != nil {
 		return err
