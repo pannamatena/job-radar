@@ -87,9 +87,9 @@ Under `location:`:
 
 | Field | What it does | Values |
 |---|---|---|
-| `hybrid` | When a hybrid role is acceptable. | `home_only` (office in your home area) or `any` |
-| `onsite` | When an on-site role is acceptable. | `home_only` or `any` |
-| `remote_open_to` | A remote role is kept only if open to one of these regions. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
+| `hybrid` | When a hybrid role is acceptable. `home_only` means the office must be one of your `counts_as_home` cities; otherwise the role is flagged `outside_home_area` and capped at 2. | `home_only` or `any` |
+| `onsite` | When an on-site role is acceptable (same rule as hybrid). | `home_only` or `any` |
+| `remote_open_to` | The regions/territories **you** can work remotely in. A remote role that names a region *not* in this list (e.g. a US-only or UK-only role) is flagged `outside_eligible_region` and capped at 2; a bare "Remote" with no region is kept. Leave empty to accept any remote role. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
 | `not_stated` | What to do when the work model isn't stated. | `keep_if_home_or_unknown` (never drop just for a missing model) |
 
 > Location rules are fully applied by the rules scorer in phase 2b. In phase 2

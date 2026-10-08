@@ -30,8 +30,9 @@ func homeLocation() config.Location {
 		HomeArea:     "Manchester",
 		CountsAsHome: []string{"Manchester"},
 		AllowedWorkModels: config.AllowedWorkModels{
-			Hybrid: "home_only",
-			Onsite: "home_only",
+			Hybrid:       "home_only",
+			Onsite:       "home_only",
+			RemoteOpenTo: []string{"United Kingdom", "Europe", "EMEA"},
 		},
 	}
 }
@@ -141,6 +142,31 @@ func TestScore_OnsiteAtHomeIsFine(t *testing.T) {
 	}
 	if r.Score != 3 {
 		t.Errorf("score = %d, want 3", r.Score)
+	}
+}
+
+func TestScore_RemoteOutsideEligibleRegionIsCappedAndFlagged(t *testing.T) {
+	s := NewRules(testRules(), homeLocation()) // open to UK/Europe/EMEA
+	for _, loc := range []string{"United States", "Remote (US)", "Remote - Americas"} {
+		p := posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteYes, Location: loc}
+		r := score(t, s, p)
+		if r.Score > locationCap {
+			t.Errorf("%q: remote role outside eligible regions should cap at %d, got %d\n%v", loc, locationCap, r.Score, r.Breakdown)
+		}
+		if !slices.Contains(r.Flags, FlagOutsideEligibleRegion) {
+			t.Errorf("%q: expected %s flag, got %v", loc, FlagOutsideEligibleRegion, r.Flags)
+		}
+	}
+}
+
+func TestScore_RemoteInRegionOrGenericIsKept(t *testing.T) {
+	s := NewRules(testRules(), homeLocation())
+	for _, loc := range []string{"Remote (EMEA)", "Remote, Europe", "Remote", "Remote - Anywhere", ""} {
+		p := posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteYes, Location: loc}
+		r := score(t, s, p)
+		if slices.Contains(r.Flags, FlagOutsideEligibleRegion) {
+			t.Errorf("%q: remote role in-region/generic should not be flagged, got %v", loc, r.Flags)
+		}
 	}
 }
 

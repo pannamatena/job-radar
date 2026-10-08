@@ -34,5 +34,9 @@ type Scorer interface {
 
 // Built-in flag names (a small generic set; users add their own via red_flags).
 const (
+	// FlagOutsideHomeArea: a hybrid/onsite role whose office isn't in a home city.
 	FlagOutsideHomeArea = "outside_home_area"
+	// FlagOutsideEligibleRegion: a remote role open to a region the user isn't
+	// (e.g. US/UK-only when they can only work in Ireland/Europe).
+	FlagOutsideEligibleRegion = "outside_eligible_region"
 )

@@ -21,9 +21,12 @@ start at 1
 ```
 
 Then two more adjustments:
-- **Work model + location:** a role that breaks your location rules (e.g. an
-  on-site role outside your home area) is capped at 2 and flagged
-  `outside_home_area`.
+- **Work model + location:** a role that breaks your location rules is capped at
+  2 and flagged. A **hybrid/onsite** role whose office isn't one of your home
+  cities (`counts_as_home`) is flagged `outside_home_area`. A **remote** role
+  open only to a region you can't work in (not in `remote_open_to` — e.g. a
+  US-only or UK-only remote role) is flagged `outside_eligible_region`. A bare
+  "Remote" with no region named is kept (when in doubt, keep).
 - **Age is ignored.** A role posted two years ago is scored exactly like one
   posted today ([ADR-0025](decisions/0025-score-fit-independently-of-posting-age.md)).
 

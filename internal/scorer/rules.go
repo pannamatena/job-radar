@@ -140,13 +140,13 @@ func (s *Rules) Score(_ context.Context, p posting.Posting) (Result, error) {
 
 	// Work model + location rules.
 	workModel := workModelOf(p.Remote)
-	if !s.locationOK(p.Location, workModel) {
-		flags = append(flags, FlagOutsideHomeArea)
+	if ok, flag := s.locationFit(p.Location, workModel); !ok {
+		flags = append(flags, flag)
 		if score > locationCap {
-			breakdown = append(breakdown, fmt.Sprintf("capped at %d (outside your location rules)", locationCap))
+			breakdown = append(breakdown, fmt.Sprintf("capped at %d (%s)", locationCap, flag))
 			score = locationCap
 		} else {
-			breakdown = append(breakdown, "flag: outside your location rules")
+			breakdown = append(breakdown, "flag: "+flag)
 		}
 	}
 
@@ -178,23 +178,80 @@ func (s *Rules) bestTrack(titleLower string) (name, phrase string) {
 	return name, phrase
 }
 
-// locationOK decides whether a posting's location fits the user's rules.
-func (s *Rules) locationOK(location, workModel string) bool {
+// locationFit decides whether a posting's location fits the user's rules and,
+// if not, which flag explains why. All of it is driven by config, so it works
+// for any location (not just a hard-coded US/UK): hybrid/onsite are judged by
+// the user's home cities (counts_as_home), remote by the regions the user can
+// work in (allowed_work_models.remote_open_to).
+func (s *Rules) locationFit(location, workModel string) (ok bool, flag string) {
 	// No location rules configured → never penalise.
 	if s.loc.HomeArea == "" && len(s.loc.CountsAsHome) == 0 {
-		return true
+		return true, ""
 	}
 	switch workModel {
-	case "remote", "not_stated":
-		// Remote roles already passed any include_remote_open_to filter at fetch
-		// time; a missing model is never a reason to drop (ADR-0012). Keep.
-		return true
+	case "not_stated":
+		// A missing work model is never a reason to penalise (ADR-0012).
+		return true, ""
+	case "remote":
+		if s.remoteOK(location) {
+			return true, ""
+		}
+		return false, FlagOutsideEligibleRegion
 	case "hybrid":
-		return s.loc.AllowedWorkModels.Hybrid == "any" || s.isHome(location)
+		if s.loc.AllowedWorkModels.Hybrid == "any" || s.isHome(location) {
+			return true, ""
+		}
+		return false, FlagOutsideHomeArea
 	case "onsite":
-		return s.loc.AllowedWorkModels.Onsite == "any" || s.isHome(location)
+		if s.loc.AllowedWorkModels.Onsite == "any" || s.isHome(location) {
+			return true, ""
+		}
+		return false, FlagOutsideHomeArea
 	}
-	return true
+	return true, ""
+}
+
+// remoteOK reports whether a remote role is open to a region the user can work
+// in. It keeps the role if the location names an allowed region, is a home
+// city, or is a bare "Remote" with no region (unknown → keep, ADR-0012). It
+// only rejects a remote role that names a specific region the user is not open
+// to (e.g. "United States", "Remote (UK)").
+func (s *Rules) remoteOK(location string) bool {
+	open := s.loc.AllowedWorkModels.RemoteOpenTo
+	if len(open) == 0 {
+		return true // no remote restriction configured
+	}
+	l := strings.ToLower(location)
+	for _, r := range open {
+		if rl := strings.ToLower(strings.TrimSpace(r)); rl != "" && strings.Contains(l, rl) {
+			return true
+		}
+	}
+	if s.isHome(location) {
+		return true
+	}
+	return isGenericRemote(l)
+}
+
+// isGenericRemote reports whether a location is just "remote" with no specific
+// place named (so we can't tell it's outside the user's regions → keep it).
+func isGenericRemote(lower string) bool {
+	filler := []string{
+		"remote", "first", "friendly", "anywhere", "worldwide", "global",
+		"distributed", "flexible", "work from home", "wfh", "fully", "hybrid",
+	}
+	stripped := lower
+	for _, f := range filler {
+		stripped = strings.ReplaceAll(stripped, f, " ")
+	}
+	// Keep only letters; if nothing meaningful remains, it's a generic "remote".
+	var b strings.Builder
+	for _, r := range stripped {
+		if r >= 'a' && r <= 'z' {
+			b.WriteRune(r)
+		}
+	}
+	return strings.TrimSpace(b.String()) == ""
 }
 
 // isHome reports whether a location counts as the user's home area.
