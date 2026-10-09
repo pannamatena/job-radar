@@ -198,17 +198,29 @@ func (s *Rules) locationFit(location, workModel string) (ok bool, flag string) {
 		}
 		return false, FlagOutsideEligibleRegion
 	case "hybrid":
-		if s.loc.AllowedWorkModels.Hybrid == "any" || s.isHome(location) {
-			return true, ""
-		}
-		return false, FlagOutsideHomeArea
+		return s.officeModelFit(s.loc.AllowedWorkModels.Hybrid, location)
 	case "onsite":
-		if s.loc.AllowedWorkModels.Onsite == "any" || s.isHome(location) {
+		return s.officeModelFit(s.loc.AllowedWorkModels.Onsite, location)
+	}
+	return true, ""
+}
+
+// officeModelFit applies a hybrid/onsite policy from config:
+//   - "never"     → the user doesn't take this work model at all
+//   - "any"       → acceptable wherever the office is
+//   - "home_only" → acceptable only in a home city (also the default)
+func (s *Rules) officeModelFit(policy, location string) (ok bool, flag string) {
+	switch policy {
+	case config.WorkModelNever:
+		return false, FlagWorkModelNotAccepted
+	case config.WorkModelAny:
+		return true, ""
+	default:
+		if s.isHome(location) {
 			return true, ""
 		}
 		return false, FlagOutsideHomeArea
 	}
-	return true, ""
 }
 
 // remoteOK reports whether a remote role is open to a region the user can work

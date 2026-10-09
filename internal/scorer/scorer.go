@@ -39,4 +39,7 @@ const (
 	// FlagOutsideEligibleRegion: a remote role open to a region the user isn't
 	// (e.g. US/UK-only when they can only work in Ireland/Europe).
 	FlagOutsideEligibleRegion = "outside_eligible_region"
+	// FlagWorkModelNotAccepted: a work model the user has ruled out entirely
+	// (e.g. onsite: never in allowed_work_models).
+	FlagWorkModelNotAccepted = "work_model_not_accepted"
 )

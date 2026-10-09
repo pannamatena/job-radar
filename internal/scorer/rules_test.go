@@ -177,3 +177,24 @@ func TestScore_NoLocationRulesNeverPenalises(t *testing.T) {
 		t.Errorf("with no location rules, nothing should be flagged outside home")
 	}
 }
+
+func TestScore_OnsiteNeverIsRejectedEvenAtHome(t *testing.T) {
+	loc := homeLocation()
+	loc.AllowedWorkModels.Onsite = config.WorkModelNever
+	s := NewRules(testRules(), loc)
+
+	// On-site in the home city: still not accepted.
+	r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteNo, Location: "Manchester, UK"})
+	if !slices.Contains(r.Flags, FlagWorkModelNotAccepted) {
+		t.Errorf("onsite: never should flag %s even at home, got %v", FlagWorkModelNotAccepted, r.Flags)
+	}
+	if r.Score > locationCap {
+		t.Errorf("onsite: never should cap at %d, got %d\n%v", locationCap, r.Score, r.Breakdown)
+	}
+
+	// Hybrid at home is unaffected by the onsite policy.
+	r = score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteHybrid, Location: "Manchester, UK"})
+	if len(r.Flags) != 0 {
+		t.Errorf("hybrid at home should not be flagged, got %v", r.Flags)
+	}
+}

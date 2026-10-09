@@ -39,6 +39,13 @@ const (
 	ATSNone       = "none" // no public API; covered by job-alert emails (phase 5)
 )
 
+// Hybrid/onsite policy values in location.allowed_work_models.
+const (
+	WorkModelHomeOnly = "home_only" // only when the office is in a home city (default)
+	WorkModelAny      = "any"       // wherever the office is
+	WorkModelNever    = "never"     // never take this work model
+)
+
 // Scorer values.
 const (
 	ScorerRules = "rules"
@@ -260,6 +267,18 @@ func (c *Config) Validate() error {
 			problems = append(problems, fmt.Sprintf("%s: ats is required (one of %s)", where, strings.Join(KnownATS(), ", ")))
 		default:
 			problems = append(problems, fmt.Sprintf("%s: ats %q is not supported; use one of %s", where, co.ATS, strings.Join(KnownATS(), ", ")))
+		}
+	}
+
+	for field, v := range map[string]string{
+		"hybrid": c.Location.AllowedWorkModels.Hybrid,
+		"onsite": c.Location.AllowedWorkModels.Onsite,
+	} {
+		switch v {
+		case "", WorkModelHomeOnly, WorkModelAny, WorkModelNever:
+		default:
+			problems = append(problems, fmt.Sprintf("location.allowed_work_models.%s: %q is not valid; use %q, %q or %q",
+				field, v, WorkModelHomeOnly, WorkModelAny, WorkModelNever))
 		}
 	}
 

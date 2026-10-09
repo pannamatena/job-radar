@@ -135,3 +135,13 @@ func TestHome_RespectsEnv(t *testing.T) {
 		t.Errorf("Home() default = %q, want %q", got, DefaultHome)
 	}
 }
+
+func TestValidate_WorkModelPolicy(t *testing.T) {
+	if _, err := Parse([]byte("location:\n  allowed_work_models:\n    onsite: never\n    hybrid: home_only\n")); err != nil {
+		t.Fatalf("valid policies rejected: %v", err)
+	}
+	_, err := Parse([]byte("location:\n  allowed_work_models:\n    onsite: nver\n"))
+	if err == nil || !strings.Contains(err.Error(), "allowed_work_models.onsite") {
+		t.Fatalf("expected a friendly error for a typo'd policy, got: %v", err)
+	}
+}
