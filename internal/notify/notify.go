@@ -27,7 +27,8 @@ type Alert struct {
 	Gap       string
 	URL       string
 	Flags     []string
-	New       bool // first time the user is seeing this posting
+	Scorer    string // "rules" or "llm", shown so the user knows who judged it
+	New       bool   // first time the user is seeing this posting
 }
 
 // Notifier delivers a batch of alerts under a short subject. One call per run.
@@ -53,7 +54,11 @@ func (t *Terminal) Send(_ context.Context, subject string, alerts []Alert) error
 		if a.New {
 			marker = "★" // new to you
 		}
-		fmt.Fprintf(t.W, "\n%s %d. [%d] %s — %s\n", marker, i+1, a.Score, a.Company, a.Title)
+		by := ""
+		if a.Scorer == "llm" {
+			by = " (AI)"
+		}
+		fmt.Fprintf(t.W, "\n%s %d. [%d%s] %s — %s\n", marker, i+1, a.Score, by, a.Company, a.Title)
 		fmt.Fprintf(t.W, "     %s · %s", orNone(a.Track), orNone(a.WorkModel))
 		if a.Location != "" {
 			fmt.Fprintf(t.W, " · %s", a.Location)

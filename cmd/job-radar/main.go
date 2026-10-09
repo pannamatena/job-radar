@@ -2,10 +2,8 @@
 // your own career profile. This is the CLI entry point; each subcommand lives
 // in its own file in this package.
 //
-// Phase 1 implements: init, list, version (and help). The remaining commands
-// from the full design (run, digest, score-one, discover, eval, report,
-// feedback) are present as stubs that say which phase adds them, so the help
-// output reflects the whole tool from the start.
+// Commands not built yet (digest, eval, report, feedback) are present as stubs
+// that say which phase adds them, so the help output reflects the whole tool.
 package main
 
 import (
@@ -14,8 +12,10 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
+	"github.com/pannamatena/job-radar/internal/config"
 	"github.com/pannamatena/job-radar/internal/logging"
 	"github.com/pannamatena/job-radar/internal/version"
 )
@@ -33,6 +33,16 @@ func run(args []string) int {
 	}
 
 	cmd, rest := args[0], args[1:]
+
+	// Secrets (the API key) come from a git-ignored .env file: the one in the
+	// current folder, then one in the config folder. Real environment
+	// variables always win.
+	for _, path := range []string{".env", filepath.Join(config.Home(), ".env")} {
+		if err := config.LoadDotEnv(path); err != nil {
+			fmt.Fprintf(os.Stderr, "job-radar: %s\n", err)
+			return 1
+		}
+	}
 
 	// Structured logger for operational logs (to stderr). User-facing output is
 	// printed directly to stdout by each command. JSON in CI, text otherwise.
@@ -104,13 +114,14 @@ Usage:
 Available now:
   init            Create your config folder from a worked example.
   list            Fetch and print current postings for your watch-list.
+  run             Fetch, score and print strong matches. --scorer rules|llm
+  score-one       Score one posting and show why. --scorer llm shows the AI's
+                  full transcript and cost.
+  discover        Detect a company's job board from its careers URL.
   version         Print the version.
   help            Show this help.
 
 Coming in later phases:
-  run             Fetch, score and notify (phase 2b).
-  score-one       Score a single posting (phase 2b/3).
-  discover        Detect a company's job board from its careers URL (phase 2).
   digest          Send the daily digest email (phase 4).
   eval            Run the evaluation suite (phase 3b).
   report          Weekly report of alerts, feedback and cost (phase 3b/4).

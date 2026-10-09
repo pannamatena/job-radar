@@ -301,6 +301,8 @@ type RunStats struct {
 	NewPostings  int
 	Scored       int
 	CostEstimate float64
+	AISent       int // postings sent to the AI this run
+	AISkipped    int // postings that passed the gate but hit a cap
 	Errors       string
 }
 
@@ -315,9 +317,9 @@ func (s *Store) RecordRun(ctx context.Context, r RunStats) (int64, error) {
 		errs = r.Errors
 	}
 	res, err := s.db.ExecContext(ctx, `
-		INSERT INTO runs (started_at, finished_at, new_postings, scored, cost_estimate, errors)
-		VALUES (?,?,?,?,?,?)`,
-		r.StartedAt.UTC().Format(time.RFC3339), finished, r.NewPostings, r.Scored, r.CostEstimate, errs)
+		INSERT INTO runs (started_at, finished_at, new_postings, scored, cost_estimate, ai_sent, ai_skipped, errors)
+		VALUES (?,?,?,?,?,?,?,?)`,
+		r.StartedAt.UTC().Format(time.RFC3339), finished, r.NewPostings, r.Scored, r.CostEstimate, r.AISent, r.AISkipped, errs)
 	if err != nil {
 		return 0, fmt.Errorf("store: recording run: %w", err)
 	}

@@ -13,7 +13,7 @@
 # How postings are scored.
 #   rules → the free, keyword-based scorer (no API key, no cost). The default.
 #   llm   → the optional AI scorer (needs your own API key; costs money).
-# The AI scorer is added in a later release; for now, leave this as "rules".
+# Start with "rules"; switch to "llm" once you've set up the AI scorer below.
 scorer: rules
 
 # ─── Companies you want to watch ────────────────────────────────────────────
@@ -24,7 +24,9 @@ scorer: rules
 #                Required for greenhouse/lever/ashby. Use `job-radar discover
 #                <careers-url>` to find it automatically.
 #   careers_url  The careers page link. Required when ats is "none".
-#   notes        (optional) Free text; the AI scorer can read this later.
+#   notes        (optional) Free text the AI scorer can read about the company.
+#   office       (optional) Where the office is, if the job board is vague
+#                (the AI scorer uses it to judge hybrid/on-site roles).
 #   filters      (optional) Narrow which roles are kept, applied before scoring:
 #                  departments            keep roles in these departments
 #                  office_ids             keep roles in these office IDs
@@ -103,6 +105,26 @@ rules:
     wants_go:           ["golang", "hands-on go"]
     cs_degree_required: ["degree in computer science required"]
   thresholds: { alert: 4, digest: 3 }
+
+# ─── The optional AI scorer ─────────────────────────────────────────────────
+# Only used when `scorer: llm` (or `--scorer llm`). It needs your own Anthropic
+# API key in a .env file and COSTS MONEY — see docs/ai-scorer.md. It also reads
+# profile.md and rubric.md from this folder. Every posting is scored by the
+# free rules scorer first; only promising ones are sent to the AI, and every
+# way it could overspend has a cap below.
+llm:
+  model: claude-haiku-5-5        # the cheap, capable default; a stronger model costs more
+  min_rules_score: 2             # the rules gate: below this, a posting never reaches the AI
+  max_postings_per_run: 25       # at most this many AI scorings per run
+  max_tokens_per_posting: 40000  # token budget per posting across all turns
+  max_turns: 6                   # model calls per posting before giving up
+  monthly_spend_cap_usd: 5       # stop AI scoring for the month at this estimated spend
+  pricing:                       # USD per million tokens — CHECK these against the source page
+    last_checked: "2026-10-09"
+    source: "https://platform.claude.com/docs/en/about-claude/pricing"
+    models:
+      claude-haiku-5-5:  { input: 0.10, output: 0.50, cache_write: 0.125, cache_read: 0.01, batch_input: 0.05, batch_output: 0.25 }
+      claude-sonnet-5-5: { input: 2.00, output: 10.00, cache_write: 2.50, cache_read: 0.10, batch_input: 1.00, batch_output: 5.00 }
 
 # ─── Security-and-privacy notice ────────────────────────────────────────────
 # Set by `job-radar init` once you confirm you've read docs/security-and-privacy.md.

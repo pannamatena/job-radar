@@ -109,13 +109,22 @@ A good rubric:
 - says what makes a **5, 4, 3** and what's a **1–2**;
 - lists your **known gaps** and tells the scorer to flag them honestly
   ("if the role hard-requires 8+ years as a TPM, say so in the gap");
-- reminds it to **never invent experience** not in `profile.md`.
+- reminds it to **never invent experience** not in `profile.md`;
+- uses the **same names** as your config: track names from `rules.tracks`, and
+  flag names from `rules.red_flags` plus the built-in ones (`relocation`,
+  `outside_home_area`, `outside_eligible_region`, `work_model_not_accepted`,
+  `too_junior`, `too_senior`, `not_software`, `unqualified_specialism`,
+  `limited_info`). The AI can only record tracks and flags from that list.
+
+Both files are sent to the AI provider with every posting it scores, so keep
+contact details, salary history and anything confidential out of them.
 
 See [`examples/profile.md`](../examples/profile.md) and
 [`examples/rubric.md`](../examples/rubric.md) for a complete worked example
 (the fictional persona).
 
-> The AI scorer itself arrives in a later release — see [ai-scorer.md](ai-scorer.md).
-> Until then, `profile.md` and `rubric.md` aren't used by the free scorer, but
-> writing them now means you're ready, and they double as a clear record of
-> what you want.
+> `profile.md` and `rubric.md` are only used by the optional AI scorer — see
+> [ai-scorer.md](ai-scorer.md). The free rules scorer doesn't read them, but
+> writing them is still worth it: they're a clear record of what you want.
+> Any edit changes the AI scorer's prompt version, so postings are re-scored
+> against the new wording on the next run.

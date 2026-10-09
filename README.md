@@ -89,7 +89,8 @@ make build
 - [adding-companies.md](docs/adding-companies.md) — supported boards, `discover` *(phase 2)*.
 - [rules-scorer.md](docs/rules-scorer.md) — how free scoring works *(phase 2b)*.
 - [writing-your-profile.md](docs/writing-your-profile.md) — profile & rubric *(phase 2b)*.
-- [ai-scorer.md](docs/ai-scorer.md) — the optional AI scorer *(phase 3)*.
+- [ai-scorer.md](docs/ai-scorer.md) — the optional AI scorer: setup, cost, caps *(phase 3)*.
+- [architecture.md](docs/architecture.md) — how it fits together, and the agent loop step by step *(phase 3)*.
 - [evaluation.md](docs/evaluation.md) — measuring quality *(phase 3b)*.
 - [email-setup.md](docs/email-setup.md) — alerts & digest *(phase 4)*.
 - [job-alert-emails.md](docs/job-alert-emails.md) — LinkedIn/Google/Etsy *(phase 5)*.
@@ -114,15 +115,16 @@ before you set up. To report a security issue, see [SECURITY.md](SECURITY.md).
 Built in phases. **Phases 1–2b are complete:** project skeleton, the shared
 rate-limited HTTP client, config loading, all three job-board sources
 (Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
-pre-filter, the free rules scorer, and the `init`, `list`, `discover`, `run`
-and `score-one` commands.
+pre-filter, the free rules scorer, the optional AI scoring agent (built; being
+checked on real postings), and the `init`, `list`, `discover`, `run` and
+`score-one` commands.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Skeleton + Greenhouse source + `init`/`list` | ✅ done |
 | 2 | Lever & Ashby sources, store, dedupe, pre-filter, `discover` | ✅ done |
 | 2b | Free rules scorer + `run`/`score-one` | ✅ done |
-| 3 | LLM scoring agent (optional) | planned |
+| 3 | LLM scoring agent (optional) | 🔄 built, in review |
 | 3b | Evaluation + published cost numbers | planned |
 | 4 | Email alerts & digest, reply-to-vote feedback | planned |
 | 5 | Job-alert emails (LinkedIn, Google, Etsy) | planned |

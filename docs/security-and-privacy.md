@@ -21,7 +21,7 @@ By running `job-radar init`, you confirm you've read this page.
 |---|---|
 | Your profile, rubric, settings, watch-list, test cases | Your `private/` folder, and your **private** GitHub config repository if you run it automatically |
 | History of jobs seen, scores, your 👍/👎 | A small database file in the same private places |
-| Passwords, tokens and API keys | Environment variables on your computer, or **GitHub Actions secrets** in your private repository. Never in files. |
+| Passwords, tokens and API keys | A `.env` file on your computer (git-ignored, so it can't be committed), environment variables, or **GitHub Actions secrets** in your private repository. Never in `config.yaml` or any file that's committed. |
 
 **Nothing is sent to the job-radar project.** There's no analytics or tracking of any kind.
 
@@ -32,7 +32,7 @@ By running `job-radar init`, you confirm you've read this page.
 | Service | What it receives | When |
 |---|---|---|
 | **Job boards** (Greenhouse, Lever, Ashby) | A request for their public job list. **No personal data.** | Every run |
-| **AI provider** (e.g. Anthropic) | Your profile, your rubric and the job ad text | **Only if you turn on AI scoring.** Your data is handled under that provider's API terms; read them before you switch it on. The free rules scorer sends nothing anywhere. |
+| **AI provider** (e.g. Anthropic) | Your profile, your rubric, your notes on the company, and the job ad text | **Only if you turn on AI scoring.** Your data is handled under that provider's API terms; read them before you switch it on. The free rules scorer sends nothing anywhere. |
 | **Email** (your job-radar mail account and your main inbox's provider) | Match alerts, the daily digest and problem notices: job titles, companies, scores and short "why"/"gap" notes (which can mention your skill gaps). Your 👍/👎 replies. | Always (email is how job-radar tells you about matches). Ordinary email is not end-to-end encrypted. |
 | **GitHub** | Everything in your private config repository, including your profile and database | If you run job-radar automatically with GitHub Actions |
 
@@ -48,7 +48,7 @@ This is the most likely way things go wrong.
 
 ### A password, token or key leaking
 job-radar uses up to three secrets: your job-radar email app password, your AI API key (only if you use AI scoring), and your GitHub login.
-- Store them only as environment variables or GitHub Actions secrets. Never in config files, screenshots or chat messages.
+- Store them only in your git-ignored `.env` file, environment variables or GitHub Actions secrets. Never in `config.yaml`, screenshots or chat messages.
 - Turn on **two-factor authentication** on your GitHub and email accounts.
 - Set a **monthly spending limit** with your AI provider, as well as in job-radar's config.
 - **If a secret leaks:** cancel or regenerate it straight away (your email account's app passwords page, or your AI provider's dashboard), then update it in your settings.
