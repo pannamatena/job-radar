@@ -15,6 +15,10 @@ import (
 // git-ignored .env file).
 const EnvAPIKey = "ANTHROPIC_API_KEY"
 
+// EnvWorkspaceID is optional. Keys that aren't tied to one Console workspace
+// must say which workspace to use, via the anthropic-workspace-id header.
+const EnvWorkspaceID = "ANTHROPIC_WORKSPACE_ID"
+
 // ErrNoAPIKey means the AI scorer was asked for but no key is configured.
 var ErrNoAPIKey = errors.New("no Anthropic API key: put ANTHROPIC_API_KEY=… in your .env file (see docs/ai-scorer.md)")
 
@@ -24,15 +28,22 @@ type Anthropic struct {
 	client anthropic.Client
 }
 
-// NewAnthropic builds a client from ANTHROPIC_API_KEY. The SDK retries
-// rate-limit and server errors itself (2 retries with backoff by default).
+// NewAnthropic builds a client from ANTHROPIC_API_KEY (and, if set,
+// ANTHROPIC_WORKSPACE_ID). The SDK retries rate-limit and server errors itself
+// (2 retries with backoff by default).
 func NewAnthropic() (*Anthropic, error) {
 	key := os.Getenv(EnvAPIKey)
 	if key == "" {
 		return nil, ErrNoAPIKey
 	}
-	return &Anthropic{client: anthropic.NewClient(option.WithAPIKey(key))}, nil
+	opts := []option.RequestOption{option.WithAPIKey(key)}
+	if ws := os.Getenv(EnvWorkspaceID); ws != "" {
+		opts = append(opts, option.WithHeader(workspaceHeader, ws))
+	}
+	return &Anthropic{client: anthropic.NewClient(opts...)}, nil
 }
+
+const workspaceHeader = "anthropic-workspace-id"
 
 // Send makes one Messages API call.
 func (a *Anthropic) Send(ctx context.Context, req Request) (Response, error) {

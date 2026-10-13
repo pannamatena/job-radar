@@ -91,6 +91,36 @@ func TestNewAnthropic_NeedsKey(t *testing.T) {
 	}
 }
 
+func TestNewAnthropic_WorkspaceHeader(t *testing.T) {
+	for _, tc := range []struct{ name, ws, want string }{
+		{"sent when set", "wrkspc_123", "wrkspc_123"},
+		{"absent when unset", "", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var got string
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				got = r.Header.Get("anthropic-workspace-id")
+				w.Header().Set("Content-Type", "application/json")
+				io.WriteString(w, `{"id":"m","type":"message","role":"assistant","model":"x","stop_reason":"end_turn","content":[],"usage":{"input_tokens":1,"output_tokens":1}}`)
+			}))
+			defer srv.Close()
+			t.Setenv(EnvAPIKey, "test")
+			t.Setenv(EnvWorkspaceID, tc.ws)
+			t.Setenv("ANTHROPIC_BASE_URL", srv.URL)
+			a, err := NewAnthropic()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := a.Send(context.Background(), Request{Model: "x", MaxTokens: 1}); err != nil {
+				t.Fatal(err)
+			}
+			if got != tc.want {
+				t.Errorf("workspace header = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestPriceCost(t *testing.T) {
 	// Haiku 5.5 prices (checked 2026-10-09): 1M uncached in + 1M out.
 	p := Price{Input: 0.10, Output: 0.50, CacheWrite: 0.125, CacheRead: 0.01}

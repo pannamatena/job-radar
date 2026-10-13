@@ -30,6 +30,13 @@ with caps so it can't run away.
    ```sh
    printf 'ANTHROPIC_API_KEY=%s\n' "$(pbpaste)" > .env && chmod 600 .env
    ```
+   **If you get** `This API key is not scoped to a workspace`, your key isn't
+   tied to one Console workspace. Add the workspace's id (shown in the
+   Console's workspace settings) to the same `.env` file:
+   ```sh
+   ANTHROPIC_WORKSPACE_ID=wrkspc_...
+   ```
+   Most keys don't need this. Creating the key inside a workspace avoids it.
 4. **Write your `profile.md` and `rubric.md`** in your config folder. The AI
    can only judge fit against what's written there — see
    [writing-your-profile.md](writing-your-profile.md).
