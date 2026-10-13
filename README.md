@@ -85,12 +85,12 @@ make build
 ## Full guides
 
 - [getting-started.md](docs/getting-started.md) — install, `init`, first run.
-- [configuration.md](docs/configuration.md) — every config field *(phase 2)*.
-- [adding-companies.md](docs/adding-companies.md) — supported boards, `discover` *(phase 2)*.
-- [rules-scorer.md](docs/rules-scorer.md) — how free scoring works *(phase 2b)*.
+- [configuration.md](docs/configuration.md) — every config field.
+- [adding-companies.md](docs/adding-companies.md) — supported boards, `discover`.
+- [rules-scorer.md](docs/rules-scorer.md) — how free scoring works.
 - [writing-your-profile.md](docs/writing-your-profile.md) — how to write your profile and rubric.
-- [ai-scorer.md](docs/ai-scorer.md) — the optional AI scorer: setup, cost, caps *(phase 3)*.
-- [architecture.md](docs/architecture.md) — how it fits together, and the agent loop step by step *(phase 3)*.
+- [ai-scorer.md](docs/ai-scorer.md) — the optional AI scorer: setup, cost, caps.
+- [architecture.md](docs/architecture.md) — how it fits together, and the agent loop step by step.
 - [evaluation.md](docs/evaluation.md) — measuring quality *(phase 3b)*.
 - [email-setup.md](docs/email-setup.md) — alerts & digest *(phase 4)*.
 - [job-alert-emails.md](docs/job-alert-emails.md) — LinkedIn/Google/Etsy *(phase 5)*.
@@ -112,7 +112,7 @@ before you set up. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Project status
 
-Built in phases. **Phases 1–2b are complete:** project skeleton, the shared
+Built in phases. **Phases 1–2b are complete, and phase 3 is built and in review:** project skeleton, the shared
 rate-limited HTTP client, config loading, all three job-board sources
 (Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
 pre-filter, the free rules scorer, the optional AI scoring agent (built; being

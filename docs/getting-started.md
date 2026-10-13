@@ -53,9 +53,10 @@ containing:
 ```
 private/
   config.yaml   your companies and location rules
-  profile.md    your career profile (starts as an example persona)
+  profile.md    your career profile (starts as an example persona;
+                see writing-your-profile.md)
   rubric.md     how roles should be scored for you
-  evals/        example test cases (for a later phase)
+  evals/        example test cases (used by evaluation, a later phase)
 ```
 
 > **`private/` is never committed to git.** That's where all your personal data
@@ -133,8 +134,10 @@ To just list your watch-list (including companies with no public API):
 
 ## What's next
 
-- **Scoring** (which roles actually fit you) arrives with the free rules scorer
-  in phase 2b — see [rules-scorer.md](rules-scorer.md).
+- **Scoring** (which roles actually fit you): the free rules scorer works now,
+  see [rules-scorer.md](rules-scorer.md). To get it right, write your
+  [profile and rubric](writing-your-profile.md). For a more thoughtful read of
+  each ad, there's the optional [AI scorer](ai-scorer.md).
 - **Email alerts** arrive in phase 4 — see [email-setup.md](email-setup.md).
 - **Running automatically** (no computer needed) arrives in phase 6 — see
   [run-automatically.md](run-automatically.md).

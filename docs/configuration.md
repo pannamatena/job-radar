@@ -99,9 +99,8 @@ Under `location:`:
 | `remote_open_to` | The regions/territories **you** can work remotely in. A remote role that names a region *not* in this list (e.g. a US-only or UK-only role) is flagged `outside_eligible_region` and capped at 2; a bare "Remote" with no region is kept. Leave empty to accept any remote role. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
 | `not_stated` | What to do when the work model isn't stated. | `keep_if_home_or_unknown` (never drop just for a missing model) |
 
-> Location rules are fully applied by the rules scorer in phase 2b. In phase 2
-> the pre-filter is conservative and does not drop on location (when in doubt,
-> keep — see [ADR-0012](decisions/0012-pre-filter-rule-when-in-doubt.md)).
+> Location rules are applied by the scorer, not the pre-filter. The pre-filter
+> is conservative and does not drop on location (when in doubt, keep — see [ADR-0012](decisions/0012-pre-filter-rule-when-in-doubt.md)).
 
 ---
 

@@ -112,7 +112,7 @@ the obvious non-software cases — see [configuration.md](configuration.md#pre-f
 and it will happily score a mid-level "Software Engineer II" highly if the ad
 mentions your keywords. That nuance — reading the whole ad like a person,
 checking requirements against your profile — is what the optional **AI scorer**
-adds in a later release ([ai-scorer.md](ai-scorer.md)). The rules scorer is the
+adds ([ai-scorer.md](ai-scorer.md)). The rules scorer is the
 free baseline that the AI has to beat, and for many roles it's plenty.
 
 See [writing-your-profile.md](writing-your-profile.md) for how to choose good
