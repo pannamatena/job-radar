@@ -170,6 +170,24 @@ func TestScore_RemoteInRegionOrGenericIsKept(t *testing.T) {
 	}
 }
 
+// ADR-0028: a hybrid role whose location is only a region the user can work in
+// (no city) is neutral, but a named city elsewhere is still flagged.
+func TestScore_HybridBareRegionIsNeutral(t *testing.T) {
+	s := NewRules(testRules(), homeLocation())
+	for _, loc := range []string{"United Kingdom", "United Kingdom (Hybrid)", "UNITED KINGDOM"} {
+		r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteHybrid, Location: loc})
+		if slices.Contains(r.Flags, FlagOutsideHomeArea) {
+			t.Errorf("%q: bare region should not be flagged, got %v", loc, r.Flags)
+		}
+	}
+	for _, loc := range []string{"London, United Kingdom", "Leeds"} {
+		r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteHybrid, Location: loc})
+		if !slices.Contains(r.Flags, FlagOutsideHomeArea) {
+			t.Errorf("%q: a named city outside home should still be flagged, got %v", loc, r.Flags)
+		}
+	}
+}
+
 func TestScore_NoLocationRulesNeverPenalises(t *testing.T) {
 	s := NewRules(testRules(), config.Location{}) // no location config
 	r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteNo, Location: "Mars"})

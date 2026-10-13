@@ -23,7 +23,9 @@ start at 1
 Then two more adjustments:
 - **Work model + location:** a role that breaks your location rules is capped at
   2 and flagged. A **hybrid/onsite** role whose office isn't one of your home
-  cities (`counts_as_home`) is flagged `outside_home_area`; a work model you've
+  cities (`counts_as_home`) is flagged `outside_home_area`, unless the location
+  is only a region you can work in, like "Ireland" with no city, which is
+  neutral ([ADR-0028](decisions/0028-bare-region-hybrid-is-neutral.md)); a work model you've
   set to `never` (e.g. `onsite: never`) is flagged `work_model_not_accepted`. A **remote** role
   open only to a region you can't work in (not in `remote_open_to` — e.g. a
   US-only or UK-only remote role) is flagged `outside_eligible_region`. A bare

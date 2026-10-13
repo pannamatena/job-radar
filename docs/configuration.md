@@ -94,7 +94,7 @@ Under `location:`:
 
 | Field | What it does | Values |
 |---|---|---|
-| `hybrid` | When a hybrid role is acceptable. `home_only` (default) means the office must be one of your `counts_as_home` cities, otherwise the role is flagged `outside_home_area` and capped at 2. `any` accepts it wherever the office is. `never` means you don't take hybrid roles at all — flagged `work_model_not_accepted` and capped at 2. | `home_only`, `any` or `never` |
+| `hybrid` | When a hybrid role is acceptable. `home_only` (default) means the office must be one of your `counts_as_home` cities, otherwise the role is flagged `outside_home_area` and capped at 2. A location that is only a region from `remote_open_to` (e.g. just "Ireland") names no city, so it's treated as neutral and kept. `any` accepts it wherever the office is. `never` means you don't take hybrid roles at all — flagged `work_model_not_accepted` and capped at 2. | `home_only`, `any` or `never` |
 | `onsite` | When a fully on-site role is acceptable — same values as `hybrid`. Set `never` if you don't take on-site roles anywhere, not even in your home city. | `home_only`, `any` or `never` |
 | `remote_open_to` | The regions/territories **you** can work remotely in. A remote role that names a region *not* in this list (e.g. a US-only or UK-only role) is flagged `outside_eligible_region` and capped at 2; a bare "Remote" with no region is kept. Leave empty to accept any remote role. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
 | `not_stated` | What to do when the work model isn't stated. | `keep_if_home_or_unknown` (never drop just for a missing model) |
