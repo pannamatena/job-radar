@@ -30,6 +30,8 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0024](0024-email-only-notifications-in-v1-push.md) | Email-only notifications in V1; push notifications deferred to V2 | Accepted |
 | [ADR-0025](0025-score-fit-independently-of-posting-age.md) | Score fit independently of posting age; alert on "new to you", not "newly posted" | Accepted |
 | [ADR-0026](0026-cross-source-duplicate-matching.md) | Matching the same role across sources — title first, then body; prefer the ATS board | Accepted |
+| [ADR-0027](0027-ai-falls-back-to-rules-and-never-pays-twice.md) | When the AI can't score, the rules score stands; an unchanged ad is never paid for twice | Accepted |
+| [ADR-0028](0028-bare-region-hybrid-is-neutral.md) | A hybrid role in a bare region (just "Ireland") is neutral, not "outside home" | Accepted |
 
 ## In one sentence each
 
@@ -59,3 +61,5 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0024](0024-email-only-notifications-in-v1-push.md)** — When every push option came with a security, cost or platform catch, I shipped V1 on email, which works everywhere, and kept the interface ready for push in V2.
 - **[ADR-0025](0025-score-fit-independently-of-posting-age.md)** — A real-world miss showed I'd tied relevance to recency, so I separated 'is it a good fit?' from 'is it new to me?', and turned the miss into a test case.
 - **[ADR-0026](0026-cross-source-duplicate-matching.md)** — The same job shows up in several places with identical wording, so I gate on the title, confirm with the body, prefer the company's own board as the source of truth, and when in doubt I'd rather show a duplicate than hide a role.
+- **[ADR-0027](0027-ai-falls-back-to-rules-and-never-pays-twice.md)** — A posting always has a score and the user can see which scorer gave it, and the AI only gets paid again when something it would judge has actually changed.
+- **[ADR-0028](0028-bare-region-hybrid-is-neutral.md)** — When an ad doesn't say which city, I treat the location as unknown rather than wrong, and keep the web-search option open for later.

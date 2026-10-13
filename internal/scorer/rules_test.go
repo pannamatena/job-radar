@@ -170,10 +170,49 @@ func TestScore_RemoteInRegionOrGenericIsKept(t *testing.T) {
 	}
 }
 
+// ADR-0028: a hybrid role whose location is only a region the user can work in
+// (no city) is neutral, but a named city elsewhere is still flagged.
+func TestScore_HybridBareRegionIsNeutral(t *testing.T) {
+	s := NewRules(testRules(), homeLocation())
+	for _, loc := range []string{"United Kingdom", "United Kingdom (Hybrid)", "UNITED KINGDOM"} {
+		r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteHybrid, Location: loc})
+		if slices.Contains(r.Flags, FlagOutsideHomeArea) {
+			t.Errorf("%q: bare region should not be flagged, got %v", loc, r.Flags)
+		}
+	}
+	for _, loc := range []string{"London, United Kingdom", "Leeds"} {
+		r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteHybrid, Location: loc})
+		if !slices.Contains(r.Flags, FlagOutsideHomeArea) {
+			t.Errorf("%q: a named city outside home should still be flagged, got %v", loc, r.Flags)
+		}
+	}
+}
+
 func TestScore_NoLocationRulesNeverPenalises(t *testing.T) {
 	s := NewRules(testRules(), config.Location{}) // no location config
 	r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteNo, Location: "Mars"})
 	if slices.Contains(r.Flags, FlagOutsideHomeArea) {
 		t.Errorf("with no location rules, nothing should be flagged outside home")
+	}
+}
+
+func TestScore_OnsiteNeverIsRejectedEvenAtHome(t *testing.T) {
+	loc := homeLocation()
+	loc.AllowedWorkModels.Onsite = config.WorkModelNever
+	s := NewRules(testRules(), loc)
+
+	// On-site in the home city: still not accepted.
+	r := score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteNo, Location: "Manchester, UK"})
+	if !slices.Contains(r.Flags, FlagWorkModelNotAccepted) {
+		t.Errorf("onsite: never should flag %s even at home, got %v", FlagWorkModelNotAccepted, r.Flags)
+	}
+	if r.Score > locationCap {
+		t.Errorf("onsite: never should cap at %d, got %d\n%v", locationCap, r.Score, r.Breakdown)
+	}
+
+	// Hybrid at home is unaffected by the onsite policy.
+	r = score(t, s, posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteHybrid, Location: "Manchester, UK"})
+	if len(r.Flags) != 0 {
+		t.Errorf("hybrid at home should not be flagged, got %v", r.Flags)
 	}
 }

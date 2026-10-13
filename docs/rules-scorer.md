@@ -23,7 +23,10 @@ start at 1
 Then two more adjustments:
 - **Work model + location:** a role that breaks your location rules is capped at
   2 and flagged. A **hybrid/onsite** role whose office isn't one of your home
-  cities (`counts_as_home`) is flagged `outside_home_area`. A **remote** role
+  cities (`counts_as_home`) is flagged `outside_home_area`, unless the location
+  is only a region you can work in, like "Ireland" with no city, which is
+  neutral ([ADR-0028](decisions/0028-bare-region-hybrid-is-neutral.md)); a work model you've
+  set to `never` (e.g. `onsite: never`) is flagged `work_model_not_accepted`. A **remote** role
   open only to a region you can't work in (not in `remote_open_to` — e.g. a
   US-only or UK-only remote role) is flagged `outside_eligible_region`. A bare
   "Remote" with no region named is kept (when in doubt, keep).
@@ -111,7 +114,7 @@ the obvious non-software cases — see [configuration.md](configuration.md#pre-f
 and it will happily score a mid-level "Software Engineer II" highly if the ad
 mentions your keywords. That nuance — reading the whole ad like a person,
 checking requirements against your profile — is what the optional **AI scorer**
-adds in a later release ([ai-scorer.md](ai-scorer.md)). The rules scorer is the
+adds ([ai-scorer.md](ai-scorer.md)). The rules scorer is the
 free baseline that the AI has to beat, and for many roles it's plenty.
 
 See [writing-your-profile.md](writing-your-profile.md) for how to choose good

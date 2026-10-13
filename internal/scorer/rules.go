@@ -198,17 +198,56 @@ func (s *Rules) locationFit(location, workModel string) (ok bool, flag string) {
 		}
 		return false, FlagOutsideEligibleRegion
 	case "hybrid":
-		if s.loc.AllowedWorkModels.Hybrid == "any" || s.isHome(location) {
-			return true, ""
-		}
-		return false, FlagOutsideHomeArea
+		return s.officeModelFit(s.loc.AllowedWorkModels.Hybrid, location)
 	case "onsite":
-		if s.loc.AllowedWorkModels.Onsite == "any" || s.isHome(location) {
+		return s.officeModelFit(s.loc.AllowedWorkModels.Onsite, location)
+	}
+	return true, ""
+}
+
+// officeModelFit applies a hybrid/onsite policy from config:
+//   - "never"     → the user doesn't take this work model at all
+//   - "any"       → acceptable wherever the office is
+//   - "home_only" → acceptable only in a home city (also the default)
+func (s *Rules) officeModelFit(policy, location string) (ok bool, flag string) {
+	switch policy {
+	case config.WorkModelNever:
+		return false, FlagWorkModelNotAccepted
+	case config.WorkModelAny:
+		return true, ""
+	default:
+		if s.isHome(location) || s.isBareRegion(location) {
 			return true, ""
 		}
 		return false, FlagOutsideHomeArea
 	}
-	return true, ""
+}
+
+// isBareRegion reports whether a location names only a region the user can
+// work in (e.g. "Ireland", "Ireland (Hybrid)") and no city. We can't tell
+// whether the office is in a home city, so we stay neutral and keep the role
+// (ADR-0028). Driven by remote_open_to, so it works for any country.
+func (s *Rules) isBareRegion(location string) bool {
+	l := lettersOnly(stripFiller(strings.ToLower(location)))
+	if l == "" {
+		return false
+	}
+	for _, r := range s.loc.AllowedWorkModels.RemoteOpenTo {
+		if lettersOnly(strings.ToLower(r)) == l {
+			return true
+		}
+	}
+	return false
+}
+
+func lettersOnly(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r >= 'a' && r <= 'z' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }
 
 // remoteOK reports whether a remote role is open to a region the user can work
@@ -236,22 +275,20 @@ func (s *Rules) remoteOK(location string) bool {
 // isGenericRemote reports whether a location is just "remote" with no specific
 // place named (so we can't tell it's outside the user's regions → keep it).
 func isGenericRemote(lower string) bool {
+	// If nothing meaningful remains, it's a generic "remote".
+	return lettersOnly(stripFiller(lower)) == ""
+}
+
+// stripFiller removes words that describe the work model rather than a place.
+func stripFiller(lower string) string {
 	filler := []string{
 		"remote", "first", "friendly", "anywhere", "worldwide", "global",
 		"distributed", "flexible", "work from home", "wfh", "fully", "hybrid",
 	}
-	stripped := lower
 	for _, f := range filler {
-		stripped = strings.ReplaceAll(stripped, f, " ")
+		lower = strings.ReplaceAll(lower, f, " ")
 	}
-	// Keep only letters; if nothing meaningful remains, it's a generic "remote".
-	var b strings.Builder
-	for _, r := range stripped {
-		if r >= 'a' && r <= 'z' {
-			b.WriteRune(r)
-		}
-	}
-	return strings.TrimSpace(b.String()) == ""
+	return lower
 }
 
 // isHome reports whether a location counts as the user's home area.

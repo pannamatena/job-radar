@@ -29,11 +29,20 @@ word isn't here and you think it should be, please open an issue.
   secrets like passwords and API keys so they never end up in a file you might
   share. Often kept in a `.env` file locally.
 
+- **Agent / tool calling** — how the AI scorer works: instead of answering in
+  one go, the AI can ask job-radar to run small "tools" (fetch the ad, look up
+  your notes on the company) and then gives its answer through a final tool.
+  See [architecture.md](architecture.md).
+
 - **GitHub Actions** — GitHub's free service for running tasks on a schedule on
   their servers, so job-radar can run without your computer being on.
 
 - **LLM (large language model) / AI scorer** — the optional, paid scoring mode
   that reads a job ad like a person would. Needs your own API key.
+
+- **Prompt caching** — the AI provider remembers the part of the request that's
+  the same every time (your profile and rubric) for a few minutes, and charges
+  about a tenth of the normal price to reuse it.
 
 - **Posting** — one job ad, after job-radar has tidied it into a standard shape.
 
@@ -49,11 +58,15 @@ word isn't here and you think it should be, please open an issue.
 - **Score** — a 1–5 rating of how well a role fits you, with a short "why" and
   the biggest "gap".
 
-- **Secret** — a password, token or API key. Secrets go in environment
-  variables, never in config files or git.
+- **Secret** — a password, access token or API key. Secrets go in a
+  git-ignored `.env` file or environment variables, never in `config.yaml` or
+  git.
 
 - **Source** — a place job-radar gets jobs from: a job board, or (later) your
   job-alert emails.
+
+- **Token** — the unit AI providers count and charge by; roughly ¾ of an
+  English word. Prices are quoted per million tokens.
 
 - **Track** — one of the kinds of role you're open to (for example: manager,
   hands-on lead, program manager). You define your own.

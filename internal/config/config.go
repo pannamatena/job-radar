@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -37,6 +38,13 @@ const (
 	ATSLever      = "lever"
 	ATSAshby      = "ashby"
 	ATSNone       = "none" // no public API; covered by job-alert emails (phase 5)
+)
+
+// Hybrid/onsite policy values in location.allowed_work_models.
+const (
+	WorkModelHomeOnly = "home_only" // only when the office is in a home city (default)
+	WorkModelAny      = "any"       // wherever the office is
+	WorkModelNever    = "never"     // never take this work model
 )
 
 // Scorer values.
@@ -62,8 +70,12 @@ type Config struct {
 	// before scoring. Empty lists fall back to sensible software-role defaults.
 	PreFilter PreFilter `yaml:"prefilter"`
 
-	// Rules configures the free rules scorer (used when scorer is "rules").
+	// Rules configures the free rules scorer. It runs on every posting, also
+	// when scorer is "llm" (it's the gate in front of the AI, ADR-0007).
 	Rules Rules `yaml:"rules"`
+
+	// LLM configures the optional AI scorer (used when scorer is "llm").
+	LLM LLM `yaml:"llm"`
 
 	// Notice records that the user has read the security-and-privacy notice.
 	Notice Notice `yaml:"notice"`
@@ -80,6 +92,7 @@ type Company struct {
 	Slug       string         `yaml:"slug,omitempty"`
 	CareersURL string         `yaml:"careers_url,omitempty"`
 	Notes      string         `yaml:"notes,omitempty"`
+	Office     string         `yaml:"office,omitempty"`
 	Filters    CompanyFilters `yaml:"filters,omitempty"`
 }
 
@@ -156,6 +169,51 @@ type Thresholds struct {
 	Digest int `yaml:"digest"`
 }
 
+// LLM configures the optional AI scorer (phase 3). Everything that costs money
+// is capped here (ADR-0009), and the model is always chosen from config, never
+// hard-coded.
+type LLM struct {
+	// Model is the model id to score with, e.g. "claude-haiku-5-5".
+	Model string `yaml:"model"`
+	// MinRulesScore is the rules gate: only postings the free rules scorer
+	// scores at or above this go to the AI (ADR-0007). Default 2.
+	MinRulesScore int `yaml:"min_rules_score"`
+	// MaxPostingsPerRun caps how many postings one run sends to the AI. Default 25.
+	MaxPostingsPerRun int `yaml:"max_postings_per_run"`
+	// MaxTokensPerPosting caps input+output tokens across all turns for one
+	// posting; past it, the posting keeps its rules score. Default 40000.
+	MaxTokensPerPosting int `yaml:"max_tokens_per_posting"`
+	// MaxTurns caps model calls per posting. Default 6.
+	MaxTurns int `yaml:"max_turns"`
+	// MonthlySpendCapUSD stops AI scoring for the rest of the calendar month
+	// once the estimated spend reaches it. Default 5.
+	MonthlySpendCapUSD float64 `yaml:"monthly_spend_cap_usd"`
+	// Pricing holds per-model prices, so estimates and caps don't depend on
+	// numbers baked into the code.
+	Pricing Pricing `yaml:"pricing"`
+}
+
+// Pricing is the per-model price table, in USD per million tokens.
+type Pricing struct {
+	// LastChecked is the date (YYYY-MM-DD) the prices were last compared with
+	// the provider's pricing page. A warning is shown when it's over 90 days old.
+	LastChecked string `yaml:"last_checked"`
+	// Source is the pricing page the numbers came from.
+	Source string `yaml:"source"`
+	// Models maps a model id to its prices.
+	Models map[string]ModelPrice `yaml:"models"`
+}
+
+// ModelPrice is one model's prices, in USD per million tokens.
+type ModelPrice struct {
+	Input       float64 `yaml:"input"`
+	Output      float64 `yaml:"output"`
+	CacheWrite  float64 `yaml:"cache_write"`
+	CacheRead   float64 `yaml:"cache_read"`
+	BatchInput  float64 `yaml:"batch_input"`
+	BatchOutput float64 `yaml:"batch_output"`
+}
+
 // Notice records the user's acknowledgement of docs/security-and-privacy.md.
 type Notice struct {
 	Accepted bool   `yaml:"accepted"`
@@ -222,6 +280,21 @@ func (c *Config) applyDefaults() {
 	if c.Rules.Thresholds.Digest == 0 {
 		c.Rules.Thresholds.Digest = 3
 	}
+	if c.LLM.MinRulesScore == 0 {
+		c.LLM.MinRulesScore = 2
+	}
+	if c.LLM.MaxPostingsPerRun == 0 {
+		c.LLM.MaxPostingsPerRun = 25
+	}
+	if c.LLM.MaxTokensPerPosting == 0 {
+		c.LLM.MaxTokensPerPosting = 40000
+	}
+	if c.LLM.MaxTurns == 0 {
+		c.LLM.MaxTurns = 6
+	}
+	if c.LLM.MonthlySpendCapUSD == 0 {
+		c.LLM.MonthlySpendCapUSD = 5
+	}
 }
 
 // Validate collects every problem and reports them together.
@@ -263,11 +336,96 @@ func (c *Config) Validate() error {
 		}
 	}
 
+	for field, v := range map[string]string{
+		"hybrid": c.Location.AllowedWorkModels.Hybrid,
+		"onsite": c.Location.AllowedWorkModels.Onsite,
+	} {
+		switch v {
+		case "", WorkModelHomeOnly, WorkModelAny, WorkModelNever:
+		default:
+			problems = append(problems, fmt.Sprintf("location.allowed_work_models.%s: %q is not valid; use %q, %q or %q",
+				field, v, WorkModelHomeOnly, WorkModelAny, WorkModelNever))
+		}
+	}
+
+	if c.Scorer == ScorerLLM {
+		problems = append(problems, c.LLM.validate()...)
+	}
+
 	if len(problems) == 0 {
 		return nil
 	}
 	sort.Strings(problems)
 	return &ValidationError{Problems: problems}
+}
+
+// validate checks the llm block. Only called when scorer is "llm", so users of
+// the free scorer never see errors about settings they don't use.
+func (l LLM) validate() []string {
+	var problems []string
+	if strings.TrimSpace(l.Model) == "" {
+		problems = append(problems, "llm.model is required when scorer is \"llm\" (e.g. claude-haiku-5-5)")
+	} else if _, ok := l.Pricing.Models[l.Model]; !ok {
+		problems = append(problems, fmt.Sprintf("llm.pricing.models has no prices for %q; add them so costs can be estimated and capped", l.Model))
+	}
+	if l.MinRulesScore < 1 || l.MinRulesScore > 5 {
+		problems = append(problems, fmt.Sprintf("llm.min_rules_score: %d is not valid; use 1–5", l.MinRulesScore))
+	}
+	if l.MaxPostingsPerRun < 0 || l.MaxTokensPerPosting < 0 || l.MaxTurns < 0 || l.MonthlySpendCapUSD < 0 {
+		problems = append(problems, "llm: limits can't be negative")
+	}
+	if l.Pricing.LastChecked != "" {
+		if _, err := time.Parse("2006-01-02", l.Pricing.LastChecked); err != nil {
+			problems = append(problems, fmt.Sprintf("llm.pricing.last_checked: %q should be a date like 2026-10-09", l.Pricing.LastChecked))
+		}
+	}
+	return problems
+}
+
+// PricingStale reports whether the price table was last checked more than 90
+// days before now (or never), so the CLI can warn that estimates may be off.
+func (l LLM) PricingStale(now time.Time) bool {
+	t, err := time.Parse("2006-01-02", l.Pricing.LastChecked)
+	if err != nil {
+		return true
+	}
+	return now.Sub(t) > 90*24*time.Hour
+}
+
+// AllowedFlags is the closed set of flags a scorer may set: the built-in
+// generic flags plus the user's own red-flag names. The AI scorer's
+// record_score tool is validated against it.
+func (c *Config) AllowedFlags() []string {
+	set := map[string]bool{}
+	for _, f := range BuiltinFlags {
+		set[f] = true
+	}
+	for name := range c.Rules.RedFlags {
+		set[name] = true
+	}
+	out := make([]string, 0, len(set))
+	for f := range set {
+		out = append(out, f)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// BuiltinFlags are generic flags every user gets (users add their own through
+// rules.red_flags).
+var BuiltinFlags = []string{
+	"relocation", "outside_home_area", "outside_eligible_region", "work_model_not_accepted",
+	"too_junior", "too_senior", "not_software", "unqualified_specialism", "limited_info",
+}
+
+// TrackNames lists the configured track names, sorted.
+func (c *Config) TrackNames() []string {
+	out := make([]string, 0, len(c.Rules.Tracks))
+	for name := range c.Rules.Tracks {
+		out = append(out, name)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // KnownATS lists the supported ATS values, for error messages and docs.

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestParse_ValidConfig(t *testing.T) {
@@ -133,5 +134,54 @@ func TestHome_RespectsEnv(t *testing.T) {
 	t.Setenv(EnvHome, "")
 	if got := Home(); got != DefaultHome {
 		t.Errorf("Home() default = %q, want %q", got, DefaultHome)
+	}
+}
+
+func TestValidate_WorkModelPolicy(t *testing.T) {
+	if _, err := Parse([]byte("location:\n  allowed_work_models:\n    onsite: never\n    hybrid: home_only\n")); err != nil {
+		t.Fatalf("valid policies rejected: %v", err)
+	}
+	_, err := Parse([]byte("location:\n  allowed_work_models:\n    onsite: nver\n"))
+	if err == nil || !strings.Contains(err.Error(), "allowed_work_models.onsite") {
+		t.Fatalf("expected a friendly error for a typo'd policy, got: %v", err)
+	}
+}
+
+func TestExampleConfigIsValidInLLMMode(t *testing.T) {
+	data, err := os.ReadFile("../../examples/config.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Parse(data)
+	if err != nil {
+		t.Fatalf("example config: %v", err)
+	}
+	cfg.Scorer = ScorerLLM
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("example llm block should be valid: %v", err)
+	}
+	if cfg.LLM.Model == "" || cfg.LLM.Pricing.Models[cfg.LLM.Model].Input == 0 {
+		t.Errorf("example should set a model with prices")
+	}
+}
+
+func TestValidate_LLMNeedsModelAndPrices(t *testing.T) {
+	_, err := Parse([]byte("scorer: llm\nllm:\n  model: some-model\n"))
+	if err == nil || !strings.Contains(err.Error(), "no prices") {
+		t.Fatalf("want a missing-prices error, got %v", err)
+	}
+	// The llm block isn't checked at all in rules mode.
+	if _, err := Parse([]byte("scorer: rules\nllm:\n  model: some-model\n")); err != nil {
+		t.Errorf("rules mode shouldn't validate llm: %v", err)
+	}
+}
+
+func TestPricingStale(t *testing.T) {
+	l := LLM{Pricing: Pricing{LastChecked: "2026-01-01"}}
+	if !l.PricingStale(time.Date(2026, 10, 9, 0, 0, 0, 0, time.UTC)) {
+		t.Errorf("9 months old should be stale")
+	}
+	if l.PricingStale(time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC)) {
+		t.Errorf("1 month old should not be stale")
 	}
 }

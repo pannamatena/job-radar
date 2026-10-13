@@ -21,7 +21,8 @@ How postings are scored. One of:
 - `rules` — the free, keyword-based scorer (no API key, no cost). **The default.**
 - `llm` — the optional AI scorer (needs your own API key; costs money).
 
-Default: `rules`. (The rules scorer lands in phase 2b, the LLM scorer in phase 3.)
+Default: `rules`. Both `run` and `score-one` accept `--scorer rules|llm` to
+override this for one command.
 
 ### `companies`
 A list of the companies you want to watch. May be empty. Each entry is a
@@ -35,8 +36,13 @@ The [pre-filter rules](#pre-filter-fields) that drop obvious non-matches before
 scoring. Optional — sensible software-role defaults are used if you omit it.
 
 ### `rules`
-The [rules-scorer settings](#rules-fields) used when `scorer` is `rules`: your
-tracks, keyword boosts, red flags and thresholds.
+The [rules-scorer settings](#rules-fields): your tracks, keyword boosts, red
+flags and thresholds. The rules scorer runs on every posting in both modes —
+with `scorer: llm` it's the free first pass that decides what reaches the AI.
+
+### `llm`
+The [AI-scorer settings](#llm-fields): model, cost caps and prices. Only
+checked when `scorer` is `llm`. See [ai-scorer.md](ai-scorer.md).
 
 ### `notice`
 Records that you've read the security-and-privacy notice. Set by `job-radar init`;
@@ -54,7 +60,8 @@ Each item under `companies:`:
 | `ats` | Which job board it uses: `greenhouse`, `lever`, `ashby`, or `none`. Required. | `greenhouse` |
 | `slug` | The company's identifier on that board (its "board token"). Required for greenhouse/lever/ashby. | `acme` |
 | `careers_url` | The careers-page link. Used when `ats` is `none`. | `"https://acme.com/careers"` |
-| `notes` | Free text about the company (the AI scorer can read this later). Optional. | `"Great React team"` |
+| `notes` | Free text about the company. The AI scorer can read it (`lookup_company_notes`). Optional. | `"Great React team"` |
+| `office` | Where the company's office is, if its job board is vague. The AI scorer's `lookup_office` tool checks this first. Optional. | `"Manchester city centre"` |
 | `filters` | Narrow which roles are kept — see below. Optional. | |
 
 ### Company `filters`
@@ -87,14 +94,13 @@ Under `location:`:
 
 | Field | What it does | Values |
 |---|---|---|
-| `hybrid` | When a hybrid role is acceptable. `home_only` means the office must be one of your `counts_as_home` cities; otherwise the role is flagged `outside_home_area` and capped at 2. | `home_only` or `any` |
-| `onsite` | When an on-site role is acceptable (same rule as hybrid). | `home_only` or `any` |
+| `hybrid` | When a hybrid role is acceptable. `home_only` (default) means the office must be one of your `counts_as_home` cities, otherwise the role is flagged `outside_home_area` and capped at 2. A location that is only a region from `remote_open_to` (e.g. just "Ireland") names no city, so it's treated as neutral and kept. `any` accepts it wherever the office is. `never` means you don't take hybrid roles at all — flagged `work_model_not_accepted` and capped at 2. | `home_only`, `any` or `never` |
+| `onsite` | When a fully on-site role is acceptable — same values as `hybrid`. Set `never` if you don't take on-site roles anywhere, not even in your home city. | `home_only`, `any` or `never` |
 | `remote_open_to` | The regions/territories **you** can work remotely in. A remote role that names a region *not* in this list (e.g. a US-only or UK-only role) is flagged `outside_eligible_region` and capped at 2; a bare "Remote" with no region is kept. Leave empty to accept any remote role. | e.g. `["United Kingdom", "Europe", "EMEA"]` |
 | `not_stated` | What to do when the work model isn't stated. | `keep_if_home_or_unknown` (never drop just for a missing model) |
 
-> Location rules are fully applied by the rules scorer in phase 2b. In phase 2
-> the pre-filter is conservative and does not drop on location (when in doubt,
-> keep — see [ADR-0012](decisions/0012-pre-filter-rule-when-in-doubt.md)).
+> Location rules are applied by the scorer, not the pre-filter. The pre-filter
+> is conservative and does not drop on location (when in doubt, keep — see [ADR-0012](decisions/0012-pre-filter-rule-when-in-doubt.md)).
 
 ---
 
@@ -146,6 +152,35 @@ clamped to 1–5. A posting's age never changes the score (ADR-0025).
 |---|---|---|
 | `alert` | Score at or above which a posting is a strong match (alerted). | `4` |
 | `digest` | Score at or above which a posting appears in the daily digest. | `3` |
+
+---
+
+## LLM fields
+
+Under `llm:` — the optional AI scorer (see [ai-scorer.md](ai-scorer.md)). Only
+validated when `scorer` is `llm`, so rules-only users can ignore it. Every
+setting that can cost money has a cap ([ADR-0009](decisions/0009-cost-controls-built-in-not-bolted.md)).
+
+| Field | What it does | Default |
+|---|---|---|
+| `model` | The model to score with. Must have an entry under `pricing.models`. | — (required) |
+| `min_rules_score` | The rules gate: only postings the free rules scorer scores at or above this go to the AI; the rest keep their rules score ([ADR-0007](decisions/0007-rules-first-ai-second-the-gate.md)). | `2` |
+| `max_postings_per_run` | At most this many postings are sent to the AI in one run. The rest keep their rules score and are counted as skipped. | `25` |
+| `max_tokens_per_posting` | Token budget for one posting across all turns (input + output, cached included). Past it, the posting keeps its rules score. | `40000` |
+| `max_turns` | Model calls allowed per posting before giving up. | `6` |
+| `monthly_spend_cap_usd` | Once the estimated AI spend this calendar month reaches this, AI scoring stops until next month. Set a limit with your AI provider too. | `5` |
+| `pricing` | The price table used for every cost estimate and the cap — see below. | |
+
+### `pricing`
+
+Prices live in config, not code, because they change. All prices are **USD per
+million tokens**.
+
+| Field | What it does |
+|---|---|
+| `last_checked` | The date (`YYYY-MM-DD`) you last compared these with the provider's pricing page. job-radar warns when it's more than 90 days old. |
+| `source` | The pricing page the numbers came from. |
+| `models` | A map of model id → prices: `input`, `output`, `cache_write` (writing the cached prompt), `cache_read` (reading it), `batch_input`, `batch_output` (the batch API, used for evaluation later). |
 
 ---
 

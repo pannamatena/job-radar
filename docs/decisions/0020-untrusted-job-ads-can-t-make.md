@@ -13,6 +13,8 @@
 
 **Trade-offs:** The office lookup is less flexible (allowlisted domains only).
 
+**As built (phase 3):** `lookup_office` doesn't fetch any web pages yet — it answers from the config's `office` field or the job board's location, else "not found". Every tool also refuses any posting id other than the one being scored. If page fetching is added later, the allowlist rule above applies. The injection eval case arrives with the eval set (phase 3b).
+
 **In one sentence:** "I assumed the input could be hostile and limited what the model could do, so the worst case is a wrong score, not a data leak."
 
 ---
