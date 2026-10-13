@@ -88,7 +88,7 @@ make build
 - [configuration.md](docs/configuration.md) — every config field *(phase 2)*.
 - [adding-companies.md](docs/adding-companies.md) — supported boards, `discover` *(phase 2)*.
 - [rules-scorer.md](docs/rules-scorer.md) — how free scoring works *(phase 2b)*.
-- [writing-your-profile.md](docs/writing-your-profile.md) — profile & rubric *(phase 2b)*.
+- [writing-your-profile.md](docs/writing-your-profile.md) — how to write your profile and rubric.
 - [ai-scorer.md](docs/ai-scorer.md) — the optional AI scorer: setup, cost, caps *(phase 3)*.
 - [architecture.md](docs/architecture.md) — how it fits together, and the agent loop step by step *(phase 3)*.
 - [evaluation.md](docs/evaluation.md) — measuring quality *(phase 3b)*.
