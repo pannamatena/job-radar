@@ -116,8 +116,8 @@ price table in your config so it can estimate every call.
 With the default model (`claude-haiku-5-5`), a typical posting takes 2–3 model
 calls. A rough estimate is **around a tenth of a US cent per posting** — so
 20 postings a day is well under $1 a month. These are estimates, not
-measurements: real numbers are measured over the evaluation set and published
-in the README (phase 3b).
+measurements: you can measure the real numbers on your own hand-labelled ads
+with `job-radar eval` ([evaluation.md](evaluation.md)).
 
 What keeps it cheap:
 - **The rules gate** (`min_rules_score`): obvious misses never reach the AI.
@@ -173,7 +173,7 @@ Gap:        Asks for production Go; the profile has none.
 
 (The numbers above are illustrative.) The **prompt** hash changes whenever your
 profile, rubric or the built-in instructions change, so scores from different
-versions can be compared later with `job-radar eval` (phase 3b).
+versions can be compared with `job-radar eval --compare` ([evaluation.md](evaluation.md)).
 
 In `run` output, AI-scored matches are marked `(AI)` next to the score, so you
 always know who judged a role.
@@ -183,9 +183,9 @@ always know who judged a role.
 ## Its honest limits
 
 - It's only as good as your `profile.md` and `rubric.md`. Vague in, vague out.
-- It can still be wrong. Phase 3b adds an evaluation set of hand-judged ads so
-  its accuracy is measured, not assumed — and compared with the free rules
-  scorer, so you can see what the paid option actually buys.
+- It can still be wrong. `job-radar eval` measures its accuracy on ads you've
+  judged yourself, and compares it with the free rules scorer, so you can see
+  what the paid option actually buys ([evaluation.md](evaluation.md)).
 - `lookup_office` doesn't browse the company's website (yet); if neither your
   config nor the job board says where the office is, it reports "not found"
   rather than guessing.

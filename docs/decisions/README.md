@@ -32,6 +32,8 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0026](0026-cross-source-duplicate-matching.md) | Matching the same role across sources — title first, then body; prefer the ATS board | Accepted |
 | [ADR-0027](0027-ai-falls-back-to-rules-and-never-pays-twice.md) | When the AI can't score, the rules score stands; an unchanged ad is never paid for twice | Accepted |
 | [ADR-0028](0028-bare-region-hybrid-is-neutral.md) | A hybrid role in a bare region (just "Ireland") is neutral, not "outside home" | Accepted |
+| [ADR-0029](0029-eval-scores-every-case-and-measures-the-gate.md) | The eval scores every case with the AI and measures the rules gate separately | Accepted |
+| [ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md) | Tune the scorer on hand-labelled cases, one change at a time, with repeats | Accepted |
 
 ## In one sentence each
 
@@ -63,3 +65,5 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0026](0026-cross-source-duplicate-matching.md)** — The same job shows up in several places with identical wording, so I gate on the title, confirm with the body, prefer the company's own board as the source of truth, and when in doubt I'd rather show a duplicate than hide a role.
 - **[ADR-0027](0027-ai-falls-back-to-rules-and-never-pays-twice.md)** — A posting always has a score and the user can see which scorer gave it, and the AI only gets paid again when something it would judge has actually changed.
 - **[ADR-0028](0028-bare-region-hybrid-is-neutral.md)** — When an ad doesn't say which city, I treat the location as unknown rather than wrong, and keep the web-search option open for later.
+- **[ADR-0029](0029-eval-scores-every-case-and-measures-the-gate.md)** — I scored every case with the AI so I could measure what the cost-saving gate was hiding, instead of assuming it was harmless.
+- **[ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md)** — I changed one thing at a time and measured it, so I could tell a real fix from a lucky run.

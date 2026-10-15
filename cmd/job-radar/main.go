@@ -78,7 +78,7 @@ func run(args []string) int {
 	case "discover":
 		return exit(cmdDiscover(ctx, rest))
 	case "eval":
-		return stub(cmd, "phase 3b (evaluation)")
+		return exit(cmdEval(ctx, rest))
 	case "report":
 		return stub(cmd, "phase 3b/4 (weekly report)")
 	case "feedback":
@@ -118,12 +118,13 @@ Available now:
   score-one       Score one posting and show why. --scorer llm shows the AI's
                   full transcript and cost.
   discover        Detect a company's job board from its careers URL.
+  eval            Measure a scorer against your hand-labelled cases.
+                  --scorer rules|llm, --repeats N, --compare A B
   version         Print the version.
   help            Show this help.
 
 Coming in later phases:
   digest          Send the daily digest email (phase 4).
-  eval            Run the evaluation suite (phase 3b).
   report          Weekly report of alerts, feedback and cost (phase 3b/4).
   feedback        Record 👍/👎 for a posting (phase 4).
 
