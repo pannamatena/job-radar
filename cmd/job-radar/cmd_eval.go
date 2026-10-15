@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pannamatena/job-radar/internal/agent"
 	"github.com/pannamatena/job-radar/internal/config"
 	"github.com/pannamatena/job-radar/internal/eval"
 	"github.com/pannamatena/job-radar/internal/filter"
+	"github.com/pannamatena/job-radar/internal/llm"
 	"github.com/pannamatena/job-radar/internal/posting"
 	"github.com/pannamatena/job-radar/internal/scorer"
 	"github.com/pannamatena/job-radar/internal/store"
@@ -34,7 +36,7 @@ func cmdEval(ctx context.Context, args []string) error {
 	yes := fs.Bool("yes", false, "don't ask before spending money")
 	compare := fs.Bool("compare", false, "compare two saved results files given as arguments")
 	skipPre := fs.Bool("skip-prefilter", false, "score every case, even ones the pre-filter would drop in a real run")
-	batch := fs.Bool("batch", false, "use the provider's batch API (not built yet)")
+	batch := fs.Bool("batch", false, "use the batch API: about half price, but results take minutes to hours (--scorer llm only)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -59,8 +61,8 @@ func cmdEval(ctx context.Context, args []string) error {
 	if fs.NArg() != 0 {
 		return fmt.Errorf("%s", evalUsage)
 	}
-	if *batch {
-		return fmt.Errorf("--batch isn't built yet: the agent needs several back-and-forth calls per ad, which the batch API handles in rounds. Run without it for now")
+	if *batch && *scorerName != config.ScorerLLM {
+		return fmt.Errorf("--batch only applies to --scorer llm (the rules scorer is free and instant)")
 	}
 	if *repeats < 1 {
 		return fmt.Errorf("--repeats must be at least 1")
@@ -117,8 +119,10 @@ func cmdEval(ctx context.Context, args []string) error {
 		}
 	}
 
+	var a *agent.Agent
+	var apiClient *llm.Anthropic
 	if useLLM {
-		a, err := newAgent(cfg)
+		a, apiClient, err = newAgentAndClient(cfg)
 		if err != nil {
 			return err
 		}
@@ -140,8 +144,15 @@ func cmdEval(ctx context.Context, args []string) error {
 		if n := len(cases) - len(toScore); n > 0 {
 			fmt.Printf("%d case(s) would be removed by the pre-filter first, as in a real run (--skip-prefilter scores them anyway).\n", n)
 		}
-		fmt.Printf("About to score %d case(s) × %d with %s (prompt %s).\nEstimated cost: about $%.3f (a rough guess; the real cost is printed afterwards).\n",
-			len(toScore), *repeats, a.Model(), a.PromptVersion(), est.CostUSD)
+		if *batch {
+			est.CostUSD *= 0.5 // batch prices are about half
+		}
+		mode := ""
+		if *batch {
+			mode = " as a batch (about half price, but it waits for the provider: a few minutes to a few hours)"
+		}
+		fmt.Printf("About to score %d case(s) × %d with %s (prompt %s)%s.\nEstimated cost: about $%.3f (a rough guess; the real cost is printed afterwards).\n",
+			len(toScore), *repeats, a.Model(), a.PromptVersion(), mode, est.CostUSD)
 
 		if err := checkMonthlyBudget(ctx, cfg, *home, est.CostUSD); err != nil {
 			return err
@@ -160,7 +171,22 @@ func cmdEval(ctx context.Context, args []string) error {
 		fmt.Printf("Scoring %d case(s) with the free rules scorer.\n", len(cases))
 	}
 
-	res, err := eval.Run(ctx, cases, score, rulesFn, opts)
+	var res eval.Results
+	if *batch {
+		opts.Progress = nil
+		res, err = eval.RunBatch(ctx, cases, rulesFn, apiClient, eval.BatchOptions{
+			Options:         opts,
+			NewConversation: func(p posting.Posting) eval.Conversation { return a.NewBatchSession(p) },
+			Round: func(round, active int) {
+				fmt.Fprintf(os.Stderr, "  round %d: sent %d request(s) as one batch, waiting…\n", round, active)
+			},
+			Waiting: func(round, done, total int) {
+				fmt.Fprintf(os.Stderr, "    round %d: %d of %d finished\n", round, done, total)
+			},
+		})
+	} else {
+		res, err = eval.Run(ctx, cases, score, rulesFn, opts)
+	}
 	if err != nil {
 		return err
 	}

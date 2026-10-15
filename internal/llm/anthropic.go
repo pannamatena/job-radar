@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
@@ -25,7 +26,8 @@ var ErrNoAPIKey = errors.New("no Anthropic API key: put ANTHROPIC_API_KEY=… in
 // Anthropic implements Client with the official Go SDK. It translates our
 // neutral types to the SDK's and back — that translation is all it does.
 type Anthropic struct {
-	client anthropic.Client
+	client       anthropic.Client
+	pollInterval time.Duration // how often SendBatch checks a running batch; 0 = default
 }
 
 // NewAnthropic builds a client from ANTHROPIC_API_KEY (and, if set,
@@ -45,8 +47,9 @@ func NewAnthropic() (*Anthropic, error) {
 
 const workspaceHeader = "anthropic-workspace-id"
 
-// Send makes one Messages API call.
-func (a *Anthropic) Send(ctx context.Context, req Request) (Response, error) {
+// buildParams turns our neutral Request into the SDK's parameters. Both the
+// one-at-a-time Send and the batch path use it, so they send identical requests.
+func buildParams(req Request) (anthropic.MessageNewParams, error) {
 	params := anthropic.MessageNewParams{
 		Model:     anthropic.Model(req.Model),
 		MaxTokens: int64(req.MaxTokens),
@@ -78,11 +81,20 @@ func (a *Anthropic) Send(ctx context.Context, req Request) (Response, error) {
 	for _, m := range req.Messages {
 		mp, err := toMessageParam(m)
 		if err != nil {
-			return Response{}, err
+			return anthropic.MessageNewParams{}, err
 		}
 		params.Messages = append(params.Messages, mp)
 	}
 
+	return params, nil
+}
+
+// Send makes one Messages API call.
+func (a *Anthropic) Send(ctx context.Context, req Request) (Response, error) {
+	params, err := buildParams(req)
+	if err != nil {
+		return Response{}, err
+	}
 	msg, err := a.client.Messages.New(ctx, params)
 	if err != nil {
 		return Response{}, fmt.Errorf("anthropic: %w", err)

@@ -71,6 +71,7 @@ type Results struct {
 	Repeats        int          `json:"repeats"`
 	AlertThreshold int          `json:"alert_threshold"`
 	GateMin        int          `json:"gate_min,omitempty"` // rules score below this never reaches the AI in real runs
+	Batch          bool         `json:"batch,omitempty"`    // run through the batch API: cheaper, and latency isn't measured
 	Cases          []CaseResult `json:"cases"`
 }
 
@@ -164,6 +165,9 @@ func Save(dir string, r Results) (string, error) {
 	label := "rules"
 	if r.Scorer == "llm" {
 		label = r.PromptVersion + "_" + r.Model
+		if r.Batch {
+			label += "_batch"
+		}
 	}
 	base := r.Date + "_" + label
 	path := filepath.Join(dir, base+".json")

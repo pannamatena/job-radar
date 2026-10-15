@@ -93,12 +93,40 @@ job-radar eval --scorer llm --yes
 | `--scorer rules\|llm` | Which scorer to measure. Default `llm`. |
 | `--model NAME` | Use a different model for this run, e.g. to try a larger one. It must have a price in `llm.pricing`. |
 | `--repeats N` | Score each case N times to see how consistent the scores are. Costs N times as much. |
+| `--batch` | Use the batch API: about half the price, but it waits for the provider (see below). |
 | `--yes` | Skip the "go ahead?" question. |
 | `--compare A B` | Compare two saved runs (see below). |
 
-`--batch` (the provider's cheaper batch API) is **not built yet**. The agent
-needs several back-and-forth calls per ad, which the batch API handles in
-rounds, so it's left for later.
+### `--batch`: half price, slower
+
+`--batch` sends the work through the provider's batch API, which costs about
+half as much but doesn't answer immediately: a batch usually finishes within
+the hour and can take up to a day. That suits an eval (you can leave it running)
+but would be wrong for live alerts, so only `eval` uses it.
+
+How it works, since the agent needs several model calls per ad (read the ad,
+look something up, record the score) and a batch is a set of *independent*
+requests: the eval works in **rounds**. Each round sends one request for every
+scoring that isn't finished as one batch, waits, feeds the replies back, and
+repeats. A typical ad needs two or three rounds, so an eval takes two or three
+batch waits. You'll see a line per round, and Ctrl-C cancels the batch so
+nothing keeps running (and nothing more is billed).
+
+In a first test each round took about five minutes, so a two-round eval took
+about eleven minutes, however few ads there were. The wait is the provider's
+queue, not your ad count.
+
+What to know:
+- **Latency isn't measured** in a batch run, and the report says so.
+- **Cost is reported at batch prices.** The estimate before the run is halved,
+  and the real figure uses `batch_input` and `batch_output` from `llm.pricing`.
+- **Prompt caching is best-effort in batches.** Because rounds can be minutes
+  apart and the cache only lives for a few minutes, you may pay for cache writes
+  more often than in a normal run. It stays cheaper overall.
+- The saved file is named `…_batch.json`, so you can tell it from a normal run.
+  A batch run and a normal run of the same prompt should give much the same scores
+  (the model and prompt are the same); `--compare` them to check.
+- `--batch` needs `--scorer llm`.
 
 Notes on how it runs:
 

@@ -66,7 +66,11 @@ func WriteReport(w io.Writer, r Results, s Summary, drafts int) {
 		fmt.Fprintf(w, "  schema failures     %d invalid record_score call(s)\n", s.SchemaFailures)
 		fmt.Fprintf(w, "  tokens              %d in, %d out, %d cache write, %d cache read\n", s.Input, s.Output, s.CacheW, s.CacheR)
 		fmt.Fprintf(w, "  cost                $%.4f total, $%.5f per scoring\n", s.CostTotal, s.CostPerCase)
-		fmt.Fprintf(w, "  latency             %.1fs per scoring\n", s.AvgLatencyMS/1000)
+		if r.Batch {
+			fmt.Fprintln(w, "  latency             not measured (run as a batch)")
+		} else {
+			fmt.Fprintf(w, "  latency             %.1fs per scoring\n", s.AvgLatencyMS/1000)
+		}
 		fmt.Fprintf(w, "\n  estimated monthly cost for the AI alone: $%.2f at 10 ads/day, $%.2f at 20 ads/day\n",
 			s.CostPerCase*10*30, s.CostPerCase*20*30)
 		if s.GateMin > 0 && s.Cases > 0 {
@@ -121,7 +125,7 @@ func WriteCompare(w io.Writer, a, b Results, fileA, fileB string) {
 	row("schema failures", fmt.Sprint(sa.SchemaFailures), fmt.Sprint(sb.SchemaFailures))
 	row("turns per scoring", fmt.Sprintf("%.1f", sa.AvgTurns), fmt.Sprintf("%.1f", sb.AvgTurns))
 	row("cost per scoring", fmt.Sprintf("$%.5f", sa.CostPerCase), fmt.Sprintf("$%.5f", sb.CostPerCase))
-	row("avg latency", fmt.Sprintf("%.1fs", sa.AvgLatencyMS/1000), fmt.Sprintf("%.1fs", sb.AvgLatencyMS/1000))
+	row("avg latency", latencyCell(a, sa), latencyCell(b, sb))
 	if a.Repeats > 1 || b.Repeats > 1 {
 		row("same score every repeat", consistency(sa), consistency(sb))
 	}
@@ -249,4 +253,11 @@ func subset(r Results, names map[string]bool) Results {
 		}
 	}
 	return out
+}
+
+func latencyCell(r Results, s Summary) string {
+	if r.Batch {
+		return "n/a (batch)"
+	}
+	return fmt.Sprintf("%.1fs", s.AvgLatencyMS/1000)
 }

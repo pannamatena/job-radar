@@ -169,6 +169,31 @@ tell from this data whether escalation would be cheap in practice.
 errs where, not what a month of real use will cost or whether escalation is
 worth building.
 
+### 11. Making the eval cheaper with the batch API
+The batch API costs about half as much but takes a batch of *independent*
+requests, and the scorer is a short conversation (read the ad, look something
+up, record the score), where each step needs the one before it. A single-shot
+version of the scorer for batch runs would have been easy to build, but it would
+have measured a different scorer from the one that runs for real. Instead the
+agent loop was split into a step-by-step session, and the batch eval runs many
+sessions in rounds: one request per unfinished scoring per batch
+([ADR-0031](decisions/0031-batch-evals-run-in-rounds.md)).
+
+A first real run, on two small cases, scored the same as a normal run of the same
+prompt (both exact), with these differences:
+- **Time:** each round took about five minutes, however small the batch. The
+  two-round eval took about eleven minutes, which is why batch suits evals you
+  can leave running and not live alerts.
+- **Cost:** $0.00027 per scoring against $0.00050 in the normal run, about 54%.
+  Slightly above half because prompt caching is best-effort across rounds that
+  are minutes apart.
+- **One small difference:** the batch run got the track right on one case fewer.
+  With two cases, that is one prediction, so I'd treat it as noise, but it is the
+  thing to watch in a bigger comparison.
+
+**Lesson:** to get a cheaper version of a measurement, adapt the cheaper
+mechanism to the real thing; don't simplify the thing to fit the mechanism.
+
 ## What it cost
 
 Almost every run was on the cheap model (Haiku class), roughly a tenth of a US

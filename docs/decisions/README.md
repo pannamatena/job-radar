@@ -34,6 +34,7 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0028](0028-bare-region-hybrid-is-neutral.md) | A hybrid role in a bare region (just "Ireland") is neutral, not "outside home" | Accepted |
 | [ADR-0029](0029-eval-scores-every-case-and-measures-the-gate.md) | The eval scores every case with the AI and measures the rules gate separately | Accepted |
 | [ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md) | Tune the scorer on hand-labelled cases, one change at a time, with repeats | Accepted |
+| [ADR-0031](0031-batch-evals-run-in-rounds.md) | Batch evals run in rounds | Accepted |
 
 ## In one sentence each
 
@@ -67,3 +68,4 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0028](0028-bare-region-hybrid-is-neutral.md)** — When an ad doesn't say which city, I treat the location as unknown rather than wrong, and keep the web-search option open for later.
 - **[ADR-0029](0029-eval-scores-every-case-and-measures-the-gate.md)** — I scored every case with the AI so I could measure what the cost-saving gate was hiding, instead of assuming it was harmless.
 - **[ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md)** — I changed one thing at a time and measured it, so I could tell a real fix from a lucky run.
+- **[ADR-0031](0031-batch-evals-run-in-rounds.md)** — I kept the real agent and adapted the batch around it, so the cheap eval still measures the thing I actually run.
