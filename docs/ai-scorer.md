@@ -47,6 +47,9 @@ with caps so it can't run away.
    job-radar score-one --scorer llm <posting-id-or-url>
    ```
    You'll see every step the agent took, the score, and what it cost.
+   If job-radar prints `warning:` lines about your rubric, they mean the rubric
+   and `config.yaml` disagree on a track or flag name. See
+   [writing-your-profile.md](writing-your-profile.md#keep-the-names-the-same-as-in-configyaml).
 7. When you're happy, set `scorer: llm` in `config.yaml` (or use
    `job-radar run --scorer llm` for a single run).
 

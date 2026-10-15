@@ -118,6 +118,18 @@ want, what makes a 5 versus a 3, and the gaps to call out. The AI reads it
 alongside each job ad. A finished example is in
 [`examples/rubric.md`](../examples/rubric.md).
 
+**Don't start from a blank page.** `job-radar init` already gives you a complete
+rubric in [`examples/rubric.md`](../examples/rubric.md): tracks, scoring bands,
+a location table, how to treat gaps, and a flag table. Edit each section for
+you. Two parts are worth understanding, because they come from lessons we
+learned the hard way:
+
+- **Gaps: bridgeable or not.** A missing "familiarity with…" skill, or a stack a
+  manager can pick up, shouldn't sink a role; a missing main backend language
+  or a hard requirement should. Without this the AI tends to treat every
+  unmet requirement the same way. The example spells it out.
+- **"or" lists.** If an ad asks for "A, B, **or** C", one is enough.
+
 A good rubric:
 
 - names your **tracks** (the kinds of role you'd take) and what counts for each
@@ -147,6 +159,16 @@ they line up (Sam's example):
   `unqualified_specialism`, `limited_info`.
 
 If you rename a track in one file, rename it in the other.
+
+You don't have to catch mismatches by eye. Whenever the AI scorer starts
+(`run --scorer llm`, `score-one --scorer llm` or `eval`), job-radar compares the
+two files and prints a warning for:
+
+- a flag the rubric describes that `config.yaml` doesn't define (the AI can never
+  set it; add it under `rules.red_flags`, with an empty list if you want the AI
+  alone to use it, like `wants_java: []`), and
+- a track or flag in `config.yaml` that the rubric never mentions (write its name
+  in `backticks` so the AI knows when to use it).
 
 > Any edit to `profile.md` or `rubric.md` changes the AI scorer's prompt
 > version, so postings are re-scored against the new wording on the next run.

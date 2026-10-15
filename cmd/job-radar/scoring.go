@@ -54,6 +54,9 @@ func newAgent(cfg *config.Config) (*agent.Agent, error) {
 	if err != nil {
 		return nil, err
 	}
+	for _, w := range agent.CheckRubric(rubric, cfg) {
+		fmt.Fprintf(os.Stderr, "warning: %s\n", w)
+	}
 	if cfg.LLM.PricingStale(time.Now()) {
 		fmt.Fprintf(os.Stderr, "warning: llm.pricing was last checked %q (over 90 days ago or never); cost estimates and the spend cap may be off. Compare with %s and update last_checked.\n",
 			cfg.LLM.Pricing.LastChecked, cfg.LLM.Pricing.Source)
