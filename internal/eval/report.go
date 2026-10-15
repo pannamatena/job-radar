@@ -126,6 +126,8 @@ func WriteCompare(w io.Writer, a, b Results, fileA, fileB string) {
 		row("same score every repeat", consistency(sa), consistency(sb))
 	}
 
+	writeBorderline(w, a, b)
+
 	bByName := map[string]CaseResult{}
 	for _, c := range b.Cases {
 		bByName[c.Name] = c
@@ -199,4 +201,52 @@ func orDash(s string) string {
 		return "—"
 	}
 	return s
+}
+
+// writeBorderline compares the two runs on borderline cases only: the ones the
+// human rated 3–4, or where either run's first score was 3–4. Cheap and
+// expensive models usually agree on obvious cases, so the difference between
+// them (and whether it's worth the price) shows up here.
+func writeBorderline(w io.Writer, a, b Results) {
+	names := map[string]bool{}
+	pick := func(r Results) {
+		for _, c := range r.Cases {
+			if c.Dropped {
+				continue
+			}
+			if inBand(c.Human.Score) || (len(c.Attempts) > 0 && inBand(c.Attempts[0].Score)) {
+				names[c.Name] = true
+			}
+		}
+	}
+	pick(a)
+	pick(b)
+	if len(names) == 0 {
+		return
+	}
+	sa, sb := Summarise(subset(a, names)), Summarise(subset(b, names))
+	fmt.Fprintf(w, "\nBorderline cases only (%d: you rated 3–4, or either run scored 3–4)\n", len(names))
+	row := func(name, x, y string) { fmt.Fprintf(w, "  %-26s %-14s %-14s\n", name, x, y) }
+	row("exact match", percent(sa.Exact), percent(sb.Exact))
+	row("within ±1", percent(sa.Within1), percent(sb.Within1))
+	row("wrong alerts", fmt.Sprint(sa.WrongAlerts), fmt.Sprint(sb.WrongAlerts))
+	row("missed good roles", fmt.Sprint(sa.Missed), fmt.Sprint(sb.Missed))
+	row("cost per scoring", fmt.Sprintf("$%.5f", sa.CostPerCase), fmt.Sprintf("$%.5f", sb.CostPerCase))
+	if a.Repeats > 1 || b.Repeats > 1 {
+		row("same score every repeat", consistency(sa), consistency(sb))
+	}
+}
+
+func inBand(score int) bool { return score == 3 || score == 4 }
+
+// subset returns r restricted to the named cases.
+func subset(r Results, names map[string]bool) Results {
+	out := r
+	out.Cases = nil
+	for _, c := range r.Cases {
+		if names[c.Name] {
+			out.Cases = append(out.Cases, c)
+		}
+	}
+	return out
 }

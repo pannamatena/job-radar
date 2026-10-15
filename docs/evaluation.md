@@ -166,6 +166,10 @@ File names are looked up in `evals/results/`. You get the summary numbers side
 by side, then each case's score from you, from A and from B, with `≠` marking
 the cases where A and B differ.
 
+`--compare` also prints a **borderline cases only** block: the cases you rated
+3–4, or where either run scored 3–4. Models usually agree on the obvious
+cases, so that is where a cheaper or pricier model shows its difference.
+
 Useful comparisons, changing **one thing at a time**:
 
 1. **Rules against AI** on the same cases: what does the paid option buy you?

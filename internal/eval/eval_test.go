@@ -253,7 +253,7 @@ func TestReportAndCompare_Smoke(t *testing.T) {
 	b.Cases[1].Attempts[0].Score = 2
 	buf.Reset()
 	WriteCompare(&buf, r, b, "a.json", "b.json")
-	if cmp := buf.String(); !strings.Contains(cmp, "≠ b") || !strings.Contains(cmp, "wrong alerts") {
+	if cmp := buf.String(); !strings.Contains(cmp, "≠ b") || !strings.Contains(cmp, "wrong alerts") || !strings.Contains(cmp, "Borderline cases only") {
 		t.Errorf("compare output:\n%s", cmp)
 	}
 }

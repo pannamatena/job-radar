@@ -105,11 +105,77 @@ on. A high score on those cases is optimistic. I did not publish numbers from
 them; tuned cases are "spent", and the next measurement needs ads the rubric
 has not seen.
 
+### 10. Cheap model vs larger model
+After the rubric had settled I ran the same 14 cases, three times each, with
+the cheap model (Haiku class, the default) and the larger one (Sonnet class),
+on the same prompt and the same labels (`eval --model` makes this one flag).
+
+| | Cheap | Larger |
+|---|---|---|
+| Exact match | 61% | 69% |
+| Within ±1 | 100% | 100% |
+| Wrong alerts | 1 | 0 |
+| Missed good roles | 3 | 0 |
+| Invalid `record_score` calls (36 scorings) | 9 | 1 |
+| Same score on all 3 repeats | 9 of 14 cases | 10 of 14 |
+| Average latency | 8.7 s | 8.1 s |
+| **Cost per scoring** | **$0.0012** | **$0.0149** (about 13×) |
+
+What the numbers hide:
+- **The larger model's advantage was a few cases, not a trend.** The cheap
+  model's alert-level mistakes came from two cases: one where it kept scoring a
+  good fit one point under the alert line, and one single scoring that crossed
+  the line. The larger model got both right. With 12 scored cases, that is a
+  difference of two cases.
+- **It was more generous.** On two cases the larger model gave a 5 where I had
+  given a 4. That doesn't change an alert at a threshold of 4, but it would at
+  5.
+- **Borderline cases.** I also compared only the cases I rated 3–4 or either
+  model scored 3–4 (8 of the 12 scored cases). The larger model made no alert
+  errors there, but its exact-match rate was lower (54% against 62%), because of
+  the over-generous 5s.
+- **The prompt favoured the cheap model.** I had tuned the rubric and profile by
+  watching the cheap model's output. The larger model ran on that same prompt
+  without any tuning and still did at least as well, so the comparison, if
+  anything, favoured the cheap one.
+- **It follows the output format better.** 1 invalid `record_score` call
+  against 9. The agent corrects these, so they cost a turn, not a failure.
+
+**Money.** At 10 ads a day, the cheap model is about $0.35 a month and the
+larger one about $4.50; at 20 ads a day, $0.70 against $9. The default
+$5 monthly cap would stop the larger model at about 11 ads a day.
+
+**Would escalation pay off?** Escalation means the cheap model scores everything
+and only scores in a band around the alert threshold go to the larger model. On
+this set the band covers about two thirds of the cases, because I chose ads
+that are borderline for me, so escalation would cost nearly as much as using
+the larger model throughout (roughly $0.011 per ad). That is a property of a
+curated set, not of a real day's postings, where most ads score 1–2. I can't
+tell from this data whether escalation would be cheap in practice.
+
+**What I concluded.**
+- Keep the cheap model as the default. Its mistakes were small (never more than
+  one point), and most were close to the alert line.
+- Document the larger model as an opt-in (`llm.model`), for people who would
+  rather pay more for fewer missed roles.
+- Don't build escalation yet. Re-measure on a couple of weeks of real postings
+  with 👍/👎 feedback, which will include the many clear no's this curated set
+  lacks. The original trigger for building it still applies: the larger model
+  must clearly win on borderline cases and using it for everything must not be
+  worth the cost. This set shows the first half weakly and the second half not
+  at all.
+
+**Lesson:** a model comparison on a curated, tuned set tells you which model
+errs where, not what a month of real use will cost or whether escalation is
+worth building.
+
 ## What it cost
 
-Every run was on a cheap model (Haiku class), roughly a tenth of a US cent per
-ad, so a full 14-case, 3-repeat run cost a few cents. The whole tuning process
-was well under a dollar. Cost was never the constraint; careful labelling was.
+Almost every run was on the cheap model (Haiku class), roughly a tenth of a US
+cent per ad, so a full 14-case, 3-repeat run cost about four cents. The one
+run on the larger model cost about 54 cents. The whole process, including that
+run, came to under a dollar. Cost was never the constraint; careful labelling
+was.
 
 ## If someone asks "how did you evaluate it?"
 
