@@ -67,6 +67,10 @@ func New(o Options) *Agent {
 // PromptVersion is the version hash stored with this agent's scores.
 func (a *Agent) PromptVersion() string { return a.version }
 
+// SystemChars is the length of the cached system prompt (profile, rubric and
+// instructions), used to estimate what an eval run will cost.
+func (a *Agent) SystemChars() int { return len(a.system) }
+
 // Model is the model this agent scores with.
 func (a *Agent) Model() string { return a.model }
 
@@ -121,8 +125,15 @@ func (a *Agent) Score(ctx context.Context, p posting.Posting) scorer.Result {
 			turn, resp.Usage.InputTokens, resp.Usage.OutputTokens, resp.Usage.CacheReadTokens, resp.StopReason)
 
 		// The conversation must include the model's reply exactly as sent,
-		// tool calls and all, before our tool results.
-		messages = append(messages, llm.Message{Role: llm.RoleAssistant, Blocks: resp.Blocks})
+		// tool calls and all, before our tool results. The API rejects a
+		// message with no content, and the model occasionally returns an
+		// empty reply, so stand in a short placeholder in that case.
+		sent := resp.Blocks
+		if len(sent) == 0 {
+			sent = []llm.Block{{Type: llm.BlockText, Text: "(no reply)"}}
+			logf("  (the model sent an empty reply)")
+		}
+		messages = append(messages, llm.Message{Role: llm.RoleAssistant, Blocks: sent})
 
 		var results []llm.Block
 		for _, b := range resp.Blocks {

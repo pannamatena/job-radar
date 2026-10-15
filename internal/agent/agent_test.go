@@ -220,6 +220,24 @@ func TestScore_NudgesWhenModelAnswersInText(t *testing.T) {
 	}
 }
 
+// The API rejects a message with no content. A real eval run hit this when the
+// model returned an empty reply, so the agent must never send one back.
+func TestScore_EmptyModelReplyIsNeverSentBackEmpty(t *testing.T) {
+	fc := &fakeClient{replies: []llm.Response{
+		{StopReason: llm.StopEndTurn},
+		reply(llm.Usage{}, toolCall("t1", ToolRecordScore, goodRecord)),
+	}}
+	r := newTestAgent(fc).Score(context.Background(), testPosting)
+	if r.AI.Status != scorer.AIScored {
+		t.Fatalf("status = %s (%s)", r.AI.Status, r.AI.Note)
+	}
+	for i, m := range fc.requests[1].Messages {
+		if len(m.Blocks) == 0 {
+			t.Errorf("message %d was sent with no content", i)
+		}
+	}
+}
+
 func TestScore_APIErrorIsUnscored(t *testing.T) {
 	fc := &fakeClient{err: errors.New("overloaded")}
 	r := newTestAgent(fc).Score(context.Background(), testPosting)
