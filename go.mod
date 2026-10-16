@@ -3,7 +3,7 @@ module github.com/pannamatena/job-radar
 go 1.27
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.75.0
+	github.com/anthropics/anthropic-sdk-go v1.80.0
 	github.com/emersion/go-imap/v2 v2.0.0-beta.8
 	golang.org/x/net v0.59.0
 	gopkg.in/yaml.v3 v3.0.1
