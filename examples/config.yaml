@@ -133,3 +133,14 @@ llm:
 # Don't edit it by hand.
 notice:
   accepted: false
+
+# ─── Email (optional) ───────────────────────────────────────────────────────
+# Alerts, the daily digest and problem notices. Off until you list at least one
+# address in `to`. The sending account's address and app password go in .env,
+# never here: see docs/email-setup.md.
+email:
+  to: []                         # e.g. ["you@your-main-inbox.com"]; more than one is allowed
+  # match_alerts: true           # one email per run listing new strong matches
+  # digest: true                 # one daily summary of everything scoring 3+
+  # digest_time: "08:00"         # the first run after this time sends the digest
+  # near_misses: 5               # "just below the line" jobs added to the digest, so you can correct low scores (0 = off)

@@ -138,6 +138,6 @@ To just list your watch-list (including companies with no public API):
   see [rules-scorer.md](rules-scorer.md). To get it right, write your
   [profile and rubric](writing-your-profile.md). For a more thoughtful read of
   each ad, there's the optional [AI scorer](ai-scorer.md).
-- **Email alerts** arrive in phase 4 — see [email-setup.md](email-setup.md).
+- **Email alerts, the daily digest and voting by reply** — see [email-setup.md](email-setup.md) and [giving-feedback.md](giving-feedback.md).
 - **Running automatically** (no computer needed) arrives in phase 6 — see
   [run-automatically.md](run-automatically.md).

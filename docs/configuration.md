@@ -201,3 +201,25 @@ The outbound-request limits (identify ourselves, rate-limit per host, cap
 requests per run, back off when asked) are enforced in code and **cannot be
 lowered or disabled** — they keep job-radar a polite guest of every site it
 contacts. See [ADR-0022](decisions/0022-hard-limits-on-outbound-requests-enforced.md).
+
+
+## `email` fields
+
+Under `email:` — alerts and the daily digest ([email-setup.md](email-setup.md)).
+Email is **off until you list at least one recipient** in `to`. The sending
+account's address and app password are secrets: they live in `.env`
+(`RADAR_EMAIL_ADDRESS`, `RADAR_EMAIL_APP_PASSWORD`), never in this file.
+
+| Field | Default | What it does |
+|---|---|---|
+| `to` | none (email off) | Who receives alerts and the digest, usually your main inbox. More than one address is allowed. |
+| `match_alerts` | `true` | One email at the end of a run listing new strong matches (score at or above `thresholds.alert`). |
+| `digest` | `true` | One daily summary of everything at or above `thresholds.digest` from the last 24 hours, grouped by track. |
+| `digest_time` | `"08:00"` | Local time after which the first run of the day sends the digest. |
+| `near_misses` | `5` | How many "just below the line" jobs (scored one point under `thresholds.digest`) the digest adds, so you can reply 👍 to any that should have scored higher. `0` turns it off. See [giving-feedback.md](giving-feedback.md). |
+| `smtp_host` / `smtp_port` | `smtp.gmail.com` / `587` | The server used to send. |
+| `imap_host` / `imap_port` | `imap.gmail.com` / `993` | The server used to read your replies. |
+
+Each track under `rules.tracks` may also have a `label`, the heading the
+digest uses for that track (for example `label: "Lead / hands-on roles"`).
+Without one, the track's name is tidied up (`lead_ic` becomes "Lead IC").

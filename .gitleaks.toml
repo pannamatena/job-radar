@@ -1,0 +1,13 @@
+# Settings for the secret scanner (used by the pre-commit hook and CI).
+title = "job-radar"
+
+[extend]
+useDefault = true
+
+# third_party/ holds other people's libraries copied in unchanged (see
+# third_party/README.md). Their test files contain made-up keys and tokens that
+# the scanner mistakes for secrets. Only test files and CI config are exempt;
+# the library code itself is still scanned.
+[[allowlists]]
+description = "dummy keys in the tests of copied-in libraries"
+paths = ['''^third_party/.*(_test\.go|\.build\.yml)$''']

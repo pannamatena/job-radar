@@ -23,8 +23,9 @@ import (
 
 // cmdRun is the main pipeline: fetch → pre-filter → dedupe/store → match
 // cross-source duplicates → score (rules, or rules-then-AI) → notify. Strong
-// matches are printed to the terminal until email arrives in phase 4.
-func cmdRun(ctx context.Context, logger *slog.Logger, args []string) error {
+// matches are printed to the terminal and, when email is on, the ones not
+// emailed before are sent in one message.
+func cmdRun(ctx context.Context, logger *slog.Logger, args []string) (runErr error) {
 	fs := flag.NewFlagSet("run", flag.ContinueOnError)
 	home := fs.String("home", config.Home(), "config directory to read")
 	dryRun := fs.Bool("dry-run", false, "don't mark postings as seen or record the run (AI spend is still recorded: it's real)")
@@ -48,6 +49,13 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) error {
 	}
 	defer st.Close()
 
+	// If the run fails after this point, tell the user (at most once a day).
+	defer func() {
+		if runErr != nil {
+			sendProblem(ctx, logger, cfg, st, []string{"The run failed: " + runErr.Error()}, *dryRun, os.Stdout)
+		}
+	}()
+
 	var sc scorer.Scorer = scorer.NewRules(cfg.Rules, cfg.Location)
 	var gate *agent.Gated
 	if mode == config.ScorerLLM {
@@ -57,11 +65,19 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) error {
 		sc = gate
 	}
 
+	if !*dryRun {
+		maybeSyncFeedback(ctx, logger, cfg, st, os.Stdout)
+	}
+
 	client := httpclient.New(httpclient.Config{UserAgent: version.UserAgent()})
 	pre := filter.New(cfg.PreFilter)
 
 	started := time.Now()
-	kept, dropped := gatherPostings(ctx, cfg, client, pre, logger)
+	kept, dropped, outcomes := gatherPostings(ctx, cfg, client, pre, logger)
+	var problems []string
+	if !*dryRun {
+		problems = recordSourceHealth(ctx, logger, st, outcomes, started)
+	}
 
 	// Record which postings are new to the user (unless this is a dry run).
 	newIDs := map[string]bool{}
@@ -130,9 +146,15 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) error {
 
 	n := &notify.Terminal{W: os.Stdout}
 	subject := fmt.Sprintf("job-radar: %d strong match(es) (score ≥ %d)", len(alerts), alertAt)
-	if err := n.Send(ctx, subject, alerts); err != nil {
+	if _, err := n.Send(ctx, notify.Message{Kind: notify.KindAlert, Subject: subject, Sections: []notify.Section{{Alerts: alerts}}}); err != nil {
 		return err
 	}
+	if len(alerts) > 0 {
+		sendAlertEmail(ctx, logger, cfg, st, alerts, *dryRun, os.Stdout)
+	}
+
+	maybeSendDigest(ctx, logger, cfg, st, *dryRun, os.Stdout)
+	sendProblem(ctx, logger, cfg, st, problems, *dryRun, os.Stdout)
 
 	fmt.Printf("\nScored %d postings (%d dropped by pre-filter, %d cross-source duplicates). %d strong, %d new this run.\n",
 		len(results), len(dropped), len(duplicateOf), len(alerts), len(newIDs))
@@ -143,6 +165,9 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) error {
 			gate.AI.Model(), gate.Sent, gate.Cached, gate.NotSent, gate.SkippedCap, gate.Unscored)
 		fmt.Printf("AI cost this run: ~$%.4f. This month: ~$%.4f of your $%.2f cap.\n",
 			gate.RunCostUSD, gate.SpentThisMonthUSD, cfg.LLM.MonthlySpendCapUSD)
+		if cap := cfg.LLM.MonthlySpendCapUSD; cap > 0 && gate.SpentThisMonthUSD >= cap {
+			problems = append(problems, fmt.Sprintf("The AI monthly spend cap ($%.2f) is reached, so new postings keep their free rules score until next month (or until you raise llm.monthly_spend_cap_usd).", cap))
+		}
 		if gate.SkippedCap > 0 {
 			fmt.Println("Some postings kept their free rules score because a cap was reached; they'll be AI-scored on a later run if they're still open.")
 		}

@@ -14,6 +14,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"sort"
@@ -76,6 +77,10 @@ type Config struct {
 
 	// LLM configures the optional AI scorer (used when scorer is "llm").
 	LLM LLM `yaml:"llm"`
+
+	// Email configures alerts and the digest (phase 4). Leave `to` empty to
+	// turn email off.
+	Email Email `yaml:"email"`
 
 	// Notice records that the user has read the security-and-privacy notice.
 	Notice Notice `yaml:"notice"`
@@ -158,9 +163,53 @@ type Rules struct {
 	Thresholds Thresholds `yaml:"thresholds"`
 }
 
+// Email is the notification setup. The sender's address and app password are
+// secrets, so they come from the environment (RADAR_EMAIL_ADDRESS and
+// RADAR_EMAIL_APP_PASSWORD, usually in .env), never from this file.
+type Email struct {
+	// To lists who receives alerts and the digest (normally your main inbox).
+	// Empty means email is off.
+	To []string `yaml:"to"`
+	// MatchAlerts sends one email per run listing new strong matches. Default on.
+	MatchAlerts *bool `yaml:"match_alerts"`
+	// Digest sends one daily summary of everything at or above the digest
+	// threshold from the last 24 hours. Default on.
+	Digest *bool `yaml:"digest"`
+	// DigestTime is the local time (HH:MM) after which the first run of the
+	// day sends the digest. Default "08:00".
+	DigestTime string `yaml:"digest_time"`
+	// NearMisses is how many "just below the line" jobs the digest adds so
+	// you can say one should have scored higher. Default 5; 0 turns it off.
+	NearMisses *int `yaml:"near_misses"`
+	// SMTPHost and SMTPPort are the sending server (Gmail defaults).
+	SMTPHost string `yaml:"smtp_host"`
+	SMTPPort int    `yaml:"smtp_port"`
+	// IMAPHost and IMAPPort are the server used to read replies (Gmail defaults).
+	IMAPHost string `yaml:"imap_host"`
+	IMAPPort int    `yaml:"imap_port"`
+}
+
+// Enabled reports whether email is switched on (at least one recipient).
+func (e Email) Enabled() bool { return len(e.To) > 0 }
+
+// AlertsOn and DigestOn apply the "default on" rule.
+func (e Email) AlertsOn() bool { return e.MatchAlerts == nil || *e.MatchAlerts }
+func (e Email) DigestOn() bool { return e.Digest == nil || *e.Digest }
+
+// NearMissCount is how many near-miss jobs the digest lists (default 5).
+func (e Email) NearMissCount() int {
+	if e.NearMisses == nil {
+		return 5
+	}
+	return *e.NearMisses
+}
+
 // Track is one career track's title patterns.
 type Track struct {
 	Titles []string `yaml:"titles"`
+	// Label is the heading the digest uses for this track. Optional: without it
+	// the track's name is tidied up ("lead_ic" becomes "Lead IC").
+	Label string `yaml:"label"`
 }
 
 // Thresholds are the score cut-offs for alerts and the digest.
@@ -280,6 +329,21 @@ func (c *Config) applyDefaults() {
 	if c.Rules.Thresholds.Digest == 0 {
 		c.Rules.Thresholds.Digest = 3
 	}
+	if c.Email.DigestTime == "" {
+		c.Email.DigestTime = "08:00"
+	}
+	if c.Email.SMTPHost == "" {
+		c.Email.SMTPHost = "smtp.gmail.com"
+	}
+	if c.Email.SMTPPort == 0 {
+		c.Email.SMTPPort = 587
+	}
+	if c.Email.IMAPHost == "" {
+		c.Email.IMAPHost = "imap.gmail.com"
+	}
+	if c.Email.IMAPPort == 0 {
+		c.Email.IMAPPort = 993
+	}
 	if c.LLM.MinRulesScore == 0 {
 		c.LLM.MinRulesScore = 2
 	}
@@ -351,12 +415,33 @@ func (c *Config) Validate() error {
 	if c.Scorer == ScorerLLM {
 		problems = append(problems, c.LLM.validate()...)
 	}
+	problems = append(problems, c.Email.validate()...)
 
 	if len(problems) == 0 {
 		return nil
 	}
 	sort.Strings(problems)
 	return &ValidationError{Problems: problems}
+}
+
+// validate checks the email block. Nothing is required when email is off.
+func (e Email) validate() []string {
+	var problems []string
+	for i, a := range e.To {
+		if _, err := mail.ParseAddress(a); err != nil {
+			problems = append(problems, fmt.Sprintf("email.to[%d]: %q is not an email address", i, a))
+		}
+	}
+	if _, err := time.Parse("15:04", e.DigestTime); err != nil {
+		problems = append(problems, fmt.Sprintf("email.digest_time: %q should be a 24-hour time like 08:00", e.DigestTime))
+	}
+	if e.NearMisses != nil && (*e.NearMisses < 0 || *e.NearMisses > 20) {
+		problems = append(problems, "email.near_misses should be between 0 and 20")
+	}
+	if e.SMTPPort < 0 || e.IMAPPort < 0 {
+		problems = append(problems, "email: ports can't be negative")
+	}
+	return problems
 }
 
 // validate checks the llm block. Only called when scorer is "llm", so users of

@@ -66,8 +66,10 @@ case, so a half-filled label can't quietly change your results.
 - a strong fit with an old posting date (age should not lower the score),
 - a role that *looks* like a fit but needs a specialism you lack.
 
-You can also add a case from an alert you disagreed with: copy the ad text into
-a new folder and label it.
+You can also add a case from a job you disagreed with. The quickest way is
+`job-radar eval draft <posting-id>` (or `--from-votes` for every job where your
+vote disagrees with its score): it copies the ad into a new draft case with the
+label left blank for you to fill in. See [giving-feedback.md](giving-feedback.md).
 
 > Your cases describe *you*, so they stay in your private config. The folder
 > `examples/evals/` has two draft cases for the fictional persona; label them

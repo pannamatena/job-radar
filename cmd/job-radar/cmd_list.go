@@ -28,6 +28,9 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	companiesOnly := fs.Bool("companies", false, "list the watch-list companies instead of their postings")
 	showAll := fs.Bool("all", false, "also show postings the pre-filter dropped")
 	showIDs := fs.Bool("ids", false, "show each posting's id (for `score-one`)")
+	low := fs.Bool("low", false, "list recently seen jobs that scored below your digest line (from the database, no network), to spot scores that are too low")
+	days := fs.Int("days", 14, "with --low: how many days back to look")
+	limit := fs.Int("limit", 30, "with --low: the most jobs to show")
 	noStore := fs.Bool("no-store", false, "don't record this run in the database (read-only)")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -41,12 +44,15 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 		printCompanies(cfg)
 		return nil
 	}
+	if *low {
+		return printLowScored(ctx, os.Stdout, cfg, *home, *days, *limit, time.Now())
+	}
 
 	client := httpclient.New(httpclient.Config{UserAgent: version.UserAgent()})
 	pre := filter.New(cfg.PreFilter)
 
 	started := time.Now()
-	kept, dropped := gatherPostings(ctx, cfg, client, pre, logger)
+	kept, dropped, _ := gatherPostings(ctx, cfg, client, pre, logger)
 
 	// Record what we kept so future runs can distinguish new from already-seen.
 	newIDs := map[string]bool{}

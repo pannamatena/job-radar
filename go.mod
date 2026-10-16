@@ -4,6 +4,7 @@ go 1.27
 
 require (
 	github.com/anthropics/anthropic-sdk-go v1.75.0
+	github.com/emersion/go-imap/v2 v2.0.0-beta.8
 	golang.org/x/net v0.59.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.60.1
@@ -13,6 +14,8 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/emersion/go-message v0.18.2 // indirect
+	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/invopop/jsonschema v0.14.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -31,3 +34,9 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+replace github.com/emersion/go-imap/v2 => ./third_party/go-imap
+
+replace github.com/emersion/go-message => ./third_party/go-message
+
+replace github.com/emersion/go-sasl => ./third_party/go-sasl
