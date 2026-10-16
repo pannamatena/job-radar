@@ -68,6 +68,16 @@ Judge whether a gap can be bridged, from the ad's wording.
   rule; backend emphasis in the ad itself (for example "especially on the
   backend", or daily work that is backend engineering).
 
+Score like a coach, not a gatekeeper: no ad matches everything, and I learn
+what an interview needs. A tool, query language, cloud platform, LLM feature
+work or business domain (fintech, say) is learnable even when the ad calls it
+"essential". For a manager role with a strong core fit, one such gap stays a 4
+and two or three together stay a 3 or 4, not a 2. In `gap`, name it honestly
+and add a few words on how I could bridge it from what `profile.md` really
+says; never invent experience. Hard blockers still score 1–2: eligibility,
+required years I lack, the main backend language of an IC role, or a
+specialism that takes years, not weeks, to learn.
+
 When an ad lists alternatives joined by "or" (for example "platform, DevOps,
 security, or developer-tooling work"), one of them is enough.
 
