@@ -138,9 +138,11 @@ learned the hard way:
   business domain, building with AI) lowers a score only a little, even when the
   ad calls it "essential", and the **gap** line says what's missing *and how you
   could close it or talk about it*, using only what's in your profile. Your
-  rubric still sets the hard limits (where you can work, years of experience
-  you lack, a language you won't use, a specialism that takes years), and
-  those score 1–2. If you want a stricter scorer, say so in the rubric
+  rubric still sets the hard limits (where you can work, a language you won't
+  use, a specialism that takes years), and those score 1–2. Years of
+  experience are a soft signal: if you do that kind of work, being a year or
+  three short never sinks a role on its own, and the more senior the role, the
+  less it matters ([ADR-0033](decisions/0033-years-of-experience-are-a-soft-signal.md)). If you want a stricter scorer, say so in the rubric
   ([ADR-0032](decisions/0032-the-scorer-coaches-by-default.md)).
 
 A good rubric:

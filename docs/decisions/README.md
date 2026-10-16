@@ -70,3 +70,4 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md)** — I changed one thing at a time and measured it, so I could tell a real fix from a lucky run.
 - **[ADR-0031](0031-batch-evals-run-in-rounds.md)** — I kept the real agent and adapted the batch around it, so the cheap eval still measures the thing I actually run.
 - **[ADR-0032](0032-the-scorer-coaches-by-default.md)** — The scorer coaches by default ("you can do this, and here's how") so new users get the same encouraging read without having to write it, while hard blockers stay theirs to set.
+- **[ADR-0033](0033-years-of-experience-are-a-soft-signal.md)** — A shortfall in years of experience in work the user really does is a note in the gap line, not a reason to hide the role.

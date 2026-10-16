@@ -63,7 +63,7 @@ Judge whether a gap can be bridged, from the ad's wording.
   domain a manager can pick up; preferred skills or tooling in a role whose main
   focus is something I do (a frontend-led role, say); strong backend skills
   listed in a frontend-led or people-led role.
-- **Not bridgeable (lower the score):** required years I lack; deep or
+- **Not bridgeable (lower the score):** deep or
   hands-on expertise in the team's main backend language; a hard eligibility
   rule; backend emphasis in the ad itself (for example "especially on the
   backend", or daily work that is backend engineering).
@@ -75,8 +75,17 @@ work or business domain (fintech, say) is learnable even when the ad calls it
 and two or three together stay a 3 or 4, not a 2. In `gap`, name it honestly
 and add a few words on how I could bridge it from what `profile.md` really
 says; never invent experience. Hard blockers still score 1–2: eligibility,
-required years I lack, the main backend language of an IC role, or a
+no experience at all of the kind of work the ad asks years of (for example 8 years as a TPM), the main backend language of an IC role, or a
 specialism that takes years, not weeks, to learn.
+
+**Years of experience are a soft signal.** An ad's number of years is usually a
+guess, and people apply anyway. Where I do that kind of work, a shortfall never
+sinks a role on its own, and the more senior the role, the less it matters (7
+or 8 years asked and I have 5 is a small point; for a more junior ask, 5 years
+asked and I have 2, lower the score by at most a point if the skills fit). Name
+it in `gap` and move on. It only counts as a blocker when I have no experience
+at all of that kind of work (for example 8 years as a TPM when I have never
+held that role) and the other core requirements don't fit either.
 
 When an ad lists alternatives joined by "or" (for example "platform, DevOps,
 security, or developer-tooling work"), one of them is enough.
