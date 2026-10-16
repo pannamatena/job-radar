@@ -42,7 +42,7 @@ func TestRequiredTitles(t *testing.T) {
 	}
 }
 
-// TestNonSoftwareFromDescription stands in for the WSP rail ad (whose real text
+// TestNonSoftwareFromDescription stands in for a real rail-engineering ad (whose text
 // is in the owner's private eval set): a software-sounding title with a rail /
 // civil-engineering body must be dropped.
 func TestNonSoftwareFromDescription(t *testing.T) {

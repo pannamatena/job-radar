@@ -220,6 +220,56 @@ func TestScore_NudgesWhenModelAnswersInText(t *testing.T) {
 	}
 }
 
+// The API rejects a message with no content. A real eval run hit this when the
+// model returned an empty reply, so the agent must never send one back.
+func TestScore_EmptyModelReplyIsNeverSentBackEmpty(t *testing.T) {
+	fc := &fakeClient{replies: []llm.Response{
+		{StopReason: llm.StopEndTurn},
+		reply(llm.Usage{}, toolCall("t1", ToolRecordScore, goodRecord)),
+	}}
+	r := newTestAgent(fc).Score(context.Background(), testPosting)
+	if r.AI.Status != scorer.AIScored {
+		t.Fatalf("status = %s (%s)", r.AI.Status, r.AI.Note)
+	}
+	for i, m := range fc.requests[1].Messages {
+		if len(m.Blocks) == 0 {
+			t.Errorf("message %d was sent with no content", i)
+		}
+	}
+}
+
+// The batch API is cheaper; a batch session must be costed at the batch price
+// (here the model has no batch price configured, so the usual half applies).
+func TestBatchSession_IsCostedAtHalfPrice(t *testing.T) {
+	u := llm.Usage{InputTokens: 100, OutputTokens: 50, CacheReadTokens: 2000}
+	run := func(batch bool) float64 {
+		fc := &fakeClient{replies: []llm.Response{reply(u, toolCall("t1", ToolRecordScore, goodRecord))}}
+		a := newTestAgent(fc)
+		var s *Session
+		if batch {
+			s = a.NewBatchSession(testPosting)
+		} else {
+			s = a.NewSession(testPosting)
+		}
+		for {
+			req, ok := s.Next()
+			if !ok {
+				break
+			}
+			resp, err := fc.Send(context.Background(), req)
+			s.Apply(resp, err)
+		}
+		if r := s.Result(); r.AI.Status != scorer.AIScored {
+			t.Fatalf("status = %s (%s)", r.AI.Status, r.AI.Note)
+		}
+		return s.Result().AI.CostUSD
+	}
+	standard, batched := run(false), run(true)
+	if standard <= 0 || abs(batched-standard/2) > 1e-12 {
+		t.Errorf("batch cost = %v, want half of %v", batched, standard)
+	}
+}
+
 func TestScore_APIErrorIsUnscored(t *testing.T) {
 	fc := &fakeClient{err: errors.New("overloaded")}
 	r := newTestAgent(fc).Score(context.Background(), testPosting)
@@ -260,4 +310,15 @@ func abs(f float64) float64 {
 		return -f
 	}
 	return f
+}
+
+// The coaching stance is built in, so it applies to every user whatever their
+// rubric says (ADR-0032).
+func TestSystemPromptHasCoachingStance(t *testing.T) {
+	sys := BuildSystemPrompt("p", "r", []string{"manager"}, nil)
+	for _, want := range []string{"coach who believes the candidate can do this job", "how the candidate could close it", "Never invent experience"} {
+		if !strings.Contains(sys, want) {
+			t.Errorf("system prompt missing %q", want)
+		}
+	}
 }

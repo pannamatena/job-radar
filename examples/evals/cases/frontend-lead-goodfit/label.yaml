@@ -1,7 +1,7 @@
 # EXAMPLE eval case for the fictional persona "Sam Rivera".
 # status: draft means it is excluded from eval metrics until you review it and
 # change it to "confirmed". Labels are always the human's judgement — fill in
-# the fields below yourself (see docs on evaluation, added in a later release).
+# the fields below yourself (see docs/evaluation.md).
 status: draft
 company: Meadowlark
 title: Senior Frontend Engineer (Team Lead)

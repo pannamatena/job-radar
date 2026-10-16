@@ -104,6 +104,8 @@ rules:
   red_flags:                    # each lowers the score and sets a flag
     wants_go:           ["golang", "hands-on go"]
     cs_degree_required: ["degree in computer science required"]
+    wants_tpm_years:    ["8+ years of technical program management"]
+    wants_java:         []        # AI-only flag: no phrases, so only the AI scorer can set it
   thresholds: { alert: 4, digest: 3 }
 
 # ─── The optional AI scorer ─────────────────────────────────────────────────

@@ -42,23 +42,33 @@ func scorerFlagValue(cfg *config.Config, override string) (string, error) {
 
 // newAgent builds the AI scoring agent: API client, profile and rubric.
 func newAgent(cfg *config.Config) (*agent.Agent, error) {
+	a, _, err := newAgentAndClient(cfg)
+	return a, err
+}
+
+// newAgentAndClient is newAgent, but also returns the API client so the batch
+// eval can send batches with it.
+func newAgentAndClient(cfg *config.Config) (*agent.Agent, *llm.Anthropic, error) {
 	client, err := llm.NewAnthropic()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	profile, err := readConfigText(cfg.Home, profileFile)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	rubric, err := readConfigText(cfg.Home, rubricFile)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	for _, w := range agent.CheckRubric(rubric, cfg) {
+		fmt.Fprintf(os.Stderr, "warning: %s\n", w)
 	}
 	if cfg.LLM.PricingStale(time.Now()) {
 		fmt.Fprintf(os.Stderr, "warning: llm.pricing was last checked %q (over 90 days ago or never); cost estimates and the spend cap may be off. Compare with %s and update last_checked.\n",
 			cfg.LLM.Pricing.LastChecked, cfg.LLM.Pricing.Source)
 	}
-	return agent.New(agent.Options{Client: client, Config: cfg, Profile: profile, Rubric: rubric}), nil
+	return agent.New(agent.Options{Client: client, Config: cfg, Profile: profile, Rubric: rubric}), client, nil
 }
 
 // newGatedScorer builds the scorer for `scorer: llm`: rules first, then the AI

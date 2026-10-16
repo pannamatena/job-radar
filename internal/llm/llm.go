@@ -24,6 +24,28 @@ type Client interface {
 	Send(ctx context.Context, req Request) (Response, error)
 }
 
+// BatchRequest is one request in a batch, with an id used to match the reply.
+type BatchRequest struct {
+	ID      string // letters, digits, - and _ only
+	Request Request
+}
+
+// BatchResult is the outcome of one batched request: a reply, or why there
+// isn't one (the request errored, expired or was cancelled).
+type BatchResult struct {
+	ID       string
+	Response Response
+	Err      error
+}
+
+// BatchClient sends many independent requests as one asynchronous batch, at a
+// discount (about half price) in exchange for waiting: results can take
+// minutes, or up to a day. Fine for evals, not for live alerts. Progress is
+// called with how many requests have finished so far, when it's known.
+type BatchClient interface {
+	SendBatch(ctx context.Context, reqs []BatchRequest, progress func(done, total int)) ([]BatchResult, error)
+}
+
 // Request is one call to the model.
 type Request struct {
 	Model     string
