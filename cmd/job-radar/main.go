@@ -73,16 +73,18 @@ func run(args []string) int {
 		return exit(cmdScoreOne(ctx, rest))
 
 	// Stubs for commands added in later phases.
+	case "email-test":
+		return exit(cmdEmailTest(ctx, rest))
 	case "digest":
-		return stub(cmd, "phase 4 (email digest)")
+		return exit(cmdDigest(ctx, logger, rest))
 	case "discover":
 		return exit(cmdDiscover(ctx, rest))
 	case "eval":
 		return exit(cmdEval(ctx, rest))
 	case "report":
-		return stub(cmd, "phase 3b/4 (weekly report)")
+		return exit(cmdReport(ctx, rest))
 	case "feedback":
-		return stub(cmd, "phase 4 (record 👍/👎)")
+		return exit(cmdFeedback(ctx, logger, rest))
 
 	default:
 		fmt.Fprintf(os.Stderr, "job-radar: unknown command %q\n\n", cmd)
@@ -120,13 +122,12 @@ Available now:
   discover        Detect a company's job board from its careers URL.
   eval            Measure a scorer against your hand-labelled cases.
                   --scorer rules|llm, --repeats N, --compare A B
+  digest          Email the daily digest now (it also goes out with the first run after email.digest_time).
+  report          Summary of recent runs, emails, AI cost and your votes. --days N
+  feedback        Record 👍/👎 (feedback <id> up|down), or read your email replies (feedback sync).
+  email-test      Send a short test email to check your email setup.
   version         Print the version.
   help            Show this help.
-
-Coming in later phases:
-  digest          Send the daily digest email (phase 4).
-  report          Weekly report of alerts, feedback and cost (phase 3b/4).
-  feedback        Record 👍/👎 for a posting (phase 4).
 
 Your personal config lives in $JOB_RADAR_HOME (default ./private), which is
 never committed to git. Run 'job-radar init' to get started.

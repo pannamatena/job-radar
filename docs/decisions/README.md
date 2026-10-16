@@ -35,6 +35,10 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0029](0029-eval-scores-every-case-and-measures-the-gate.md) | The eval scores every case with the AI and measures the rules gate separately | Accepted |
 | [ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md) | Tune the scorer on hand-labelled cases, one change at a time, with repeats | Accepted |
 | [ADR-0031](0031-batch-evals-run-in-rounds.md) | Batch evals run in rounds | Accepted |
+| [ADR-0032](0032-the-scorer-coaches-by-default.md) | The AI scorer coaches by default | Accepted |
+| [ADR-0033](0033-years-of-experience-are-a-soft-signal.md) | Years of experience are a soft signal, not a blocker | Accepted |
+| [ADR-0034](0034-read-email-replies-over-imap-read-only.md) | Read vote replies over IMAP, read-only, from your own address only | Accepted |
+| [ADR-0035](0035-what-each-email-says-and-when.md) | What each email says, and when it is sent | Accepted |
 
 ## In one sentence each
 
@@ -71,3 +75,5 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0031](0031-batch-evals-run-in-rounds.md)** — I kept the real agent and adapted the batch around it, so the cheap eval still measures the thing I actually run.
 - **[ADR-0032](0032-the-scorer-coaches-by-default.md)** — The scorer coaches by default ("you can do this, and here's how") so new users get the same encouraging read without having to write it, while hard blockers stay theirs to set.
 - **[ADR-0033](0033-years-of-experience-are-a-soft-signal.md)** — A shortfall in years of experience in work the user really does is a note in the gap line, not a reason to hide the role.
+- **[ADR-0034](0034-read-email-replies-over-imap-read-only.md)** — Replying "1 👍" to an email works, because the tool reads only your own replies, read-only, and nothing else in a reply can make it do anything; the third-party code that reads your mail is copied in and upgraded only by hand.
+- **[ADR-0035](0035-what-each-email-says-and-when.md)** — You hear about a good job once, get a summary once a day, and hear about a problem at most once a day.

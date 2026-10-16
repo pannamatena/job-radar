@@ -17,7 +17,7 @@ import (
 // gatherPostings fetches every configured company through the shared client and
 // splits the results into those the pre-filter keeps and those it drops. One
 // company failing never stops the rest. Shared by `list` and `run`.
-func gatherPostings(ctx context.Context, cfg *config.Config, client *httpclient.Client, pre *filter.Filter, logger *slog.Logger) (kept, dropped []posting.Posting) {
+func gatherPostings(ctx context.Context, cfg *config.Config, client *httpclient.Client, pre *filter.Filter, logger *slog.Logger) (kept, dropped []posting.Posting, outcomes []sourceOutcome) {
 	for _, co := range cfg.Companies {
 		src, err := sources.For(client, co)
 		if err != nil {
@@ -25,6 +25,7 @@ func gatherPostings(ctx context.Context, cfg *config.Config, client *httpclient.
 				fmt.Fprintf(os.Stderr, "  · %s: no public API (covered by job-alert emails in phase 5) — skipping\n", co.Name)
 			} else {
 				fmt.Fprintf(os.Stderr, "  ! %s: %s\n", co.Name, err)
+				outcomes = append(outcomes, sourceOutcome{Company: co.Name, Err: err})
 			}
 			continue
 		}
@@ -32,8 +33,10 @@ func gatherPostings(ctx context.Context, cfg *config.Config, client *httpclient.
 		if err != nil {
 			logger.Warn("source failed", "company", co.Name, "error", err.Error())
 			fmt.Fprintf(os.Stderr, "  ! %s: %s\n", co.Name, err)
+			outcomes = append(outcomes, sourceOutcome{Company: co.Name, Err: err})
 			continue
 		}
+		outcomes = append(outcomes, sourceOutcome{Company: co.Name})
 		logger.Info("fetched", "company", co.Name, "source", src.Name(), "postings", len(postings))
 		for _, p := range postings {
 			if pre.Check(p).Keep {
@@ -43,5 +46,11 @@ func gatherPostings(ctx context.Context, cfg *config.Config, client *httpclient.
 			}
 		}
 	}
-	return kept, dropped
+	return kept, dropped, outcomes
+}
+
+// sourceOutcome is how one company's job board did in this run (Err nil = fine).
+type sourceOutcome struct {
+	Company string
+	Err     error
 }

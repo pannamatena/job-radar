@@ -23,7 +23,7 @@ own API key.
 ## What it looks like
 
 > 🖼️ TODO(screenshot): a match-alert email and a digest email, from the
-> fictional persona. Added in phase 4 when email lands.
+> fictional persona. To be added from a real run with the fictional profile.
 
 For now, `job-radar list` prints current postings for your watch-list, marking
 the ones new since you last ran it:
@@ -92,7 +92,8 @@ make build
 - [ai-scorer.md](docs/ai-scorer.md) — the optional AI scorer: setup, cost, caps.
 - [architecture.md](docs/architecture.md) — how it fits together, and the agent loop step by step.
 - [evaluation.md](docs/evaluation.md) — measuring quality: label your own ads and run `job-radar eval`. [eval-lessons.md](docs/eval-lessons.md) tells how I used it and what went wrong.
-- [email-setup.md](docs/email-setup.md) — alerts & digest *(phase 4)*.
+- [email-setup.md](docs/email-setup.md) — alerts & digest by email, and voting by reply.
+- [giving-feedback.md](docs/giving-feedback.md) — tell job-radar when it gets a job wrong (too high or too low), and turn those into test cases.
 - [job-alert-emails.md](docs/job-alert-emails.md) — LinkedIn/Google/Etsy *(phase 5)*.
 - [run-automatically.md](docs/run-automatically.md) — GitHub Actions *(phase 6)*.
 - [troubleshooting.md](docs/troubleshooting.md) · [faq.md](docs/faq.md) · [glossary.md](docs/glossary.md)
@@ -112,11 +113,12 @@ before you set up. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Project status
 
-Built in phases. **Phases 1–3b are complete (the AI scorer and its evaluation tooling):** project skeleton, the shared
+Built in phases. **Phases 1–4 are complete (scoring, evaluation and email):** project skeleton, the shared
 rate-limited HTTP client, config loading, all three job-board sources
 (Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
-pre-filter, the free rules scorer, the optional AI scoring agent, the `eval` command that measures it, and the
-`init`, `list`, `discover`, `run` and `score-one` commands. Email alerts are next.
+pre-filter, the free rules scorer, the optional AI scoring agent, the `eval` command that measures it, the
+email alerts, daily digest and reply-to-vote feedback, and the
+`init`, `list`, `discover`, `run`, `score-one`, `digest`, `feedback` and `report` commands. Next: running it automatically in the cloud.
 
 | Phase | What | Status |
 |---|---|---|
@@ -125,7 +127,7 @@ pre-filter, the free rules scorer, the optional AI scoring agent, the `eval` com
 | 2b | Free rules scorer + `run`/`score-one` | ✅ done |
 | 3 | LLM scoring agent (optional) | ✅ done |
 | 3b | Evaluation (`job-radar eval`), batch mode | ✅ done; published numbers wait for unseen test ads |
-| 4 | Email alerts & digest, reply-to-vote feedback | planned |
+| 4 | Email alerts & digest, reply-to-vote feedback | ✅ done |
 | 5 | Job-alert emails (LinkedIn, Google, Etsy) | planned |
 | 6 | Open-source release: binaries, hosting template, full docs | planned |
 

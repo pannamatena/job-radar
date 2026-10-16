@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Go libraries. Dependabot waits before proposing a new release, so a
+  # compromised or broken release has time to be spotted and withdrawn.
+  # Every proposal is a pull request that a person reviews; nothing merges itself.
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    open-pull-requests-limit: 5
+
+  # Pinned GitHub Actions (see ADR-0018).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

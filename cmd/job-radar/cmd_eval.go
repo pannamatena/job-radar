@@ -22,12 +22,16 @@ import (
 
 const evalUsage = `usage:
   job-radar eval [--scorer rules|llm] [--model NAME] [--repeats N] [--skip-prefilter] [--yes]
-  job-radar eval --compare <results_a> <results_b>`
+  job-radar eval --compare <results_a> <results_b>
+  job-radar eval draft <posting-id>... | --from-votes   make draft cases from stored jobs`
 
 // cmdEval measures a scorer against the owner's hand-labelled cases, or
 // compares two saved runs. The rules scorer is free; the AI scorer costs money,
 // so it prints an estimate and asks first.
 func cmdEval(ctx context.Context, args []string) error {
+	if len(args) > 0 && args[0] == "draft" {
+		return cmdEvalDraft(ctx, args[1:])
+	}
 	fs := flag.NewFlagSet("eval", flag.ContinueOnError)
 	home := fs.String("home", config.Home(), "config directory to read")
 	scorerName := fs.String("scorer", "llm", "rules or llm")
