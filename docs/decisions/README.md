@@ -69,3 +69,4 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0029](0029-eval-scores-every-case-and-measures-the-gate.md)** — I scored every case with the AI so I could measure what the cost-saving gate was hiding, instead of assuming it was harmless.
 - **[ADR-0030](0030-tune-on-labelled-cases-one-change-at-a-time.md)** — I changed one thing at a time and measured it, so I could tell a real fix from a lucky run.
 - **[ADR-0031](0031-batch-evals-run-in-rounds.md)** — I kept the real agent and adapted the batch around it, so the cheap eval still measures the thing I actually run.
+- **[ADR-0032](0032-the-scorer-coaches-by-default.md)** — The scorer coaches by default ("you can do this, and here's how") so new users get the same encouraging read without having to write it, while hard blockers stay theirs to set.

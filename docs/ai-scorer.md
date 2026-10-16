@@ -186,6 +186,10 @@ always know who judged a role.
 ## Its honest limits
 
 - It's only as good as your `profile.md` and `rubric.md`. Vague in, vague out.
+- It coaches by design: it assumes you can learn a quick-to-learn gap, and
+  says how to close it, while your rubric's hard limits still score 1–2. It
+  never invents experience. If you want it stricter, say so in your rubric
+  ([ADR-0032](decisions/0032-the-scorer-coaches-by-default.md)).
 - It can still be wrong. `job-radar eval` measures its accuracy on ads you've
   judged yourself, and compares it with the free rules scorer, so you can see
   what the paid option actually buys ([evaluation.md](evaluation.md)).

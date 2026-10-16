@@ -311,3 +311,14 @@ func abs(f float64) float64 {
 	}
 	return f
 }
+
+// The coaching stance is built in, so it applies to every user whatever their
+// rubric says (ADR-0032).
+func TestSystemPromptHasCoachingStance(t *testing.T) {
+	sys := BuildSystemPrompt("p", "r", []string{"manager"}, nil)
+	for _, want := range []string{"coach who believes the candidate can do this job", "how the candidate could close it", "Never invent experience"} {
+		if !strings.Contains(sys, want) {
+			t.Errorf("system prompt missing %q", want)
+		}
+	}
+}

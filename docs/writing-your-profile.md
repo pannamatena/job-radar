@@ -82,6 +82,9 @@ looking for, in 3–4 sentences.
 - **Strong:** things you could do in your sleep.
 - **Working knowledge:** things you've used but wouldn't lead on.
 - **Light / learning:** honest gaps. This section matters most.
+  Also write down what you've *touched* or are learning now (a database you
+  used at work, a side project with AI). The scorer can only encourage you
+  about what it can see, and these are what you can say in an interview.
 
 ## Education
 - <Degree, institution, year>
@@ -129,6 +132,16 @@ learned the hard way:
   or a hard requirement should. Without this the AI tends to treat every
   unmet requirement the same way. The example spells it out.
 - **"or" lists.** If an ad asks for "A, B, **or** C", one is enough.
+- **Coaching, not gatekeeping.** No ad matches everything, and you'll learn
+  what an interview needs. job-radar's AI scorer is built to think that way
+  whatever your rubric says: a gap you could learn quickly (a tool, SQL, a
+  business domain, building with AI) lowers a score only a little, even when the
+  ad calls it "essential", and the **gap** line says what's missing *and how you
+  could close it or talk about it*, using only what's in your profile. Your
+  rubric still sets the hard limits (where you can work, years of experience
+  you lack, a language you won't use, a specialism that takes years), and
+  those score 1–2. If you want a stricter scorer, say so in the rubric
+  ([ADR-0032](decisions/0032-the-scorer-coaches-by-default.md)).
 
 A good rubric:
 
