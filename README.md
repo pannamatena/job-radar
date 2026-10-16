@@ -65,7 +65,7 @@ Fetched 2 kept, 0 dropped by pre-filter · 2 new, 0 already seen.
   useful why/gap. It uses your own API key and costs money per posting. The
   measured cost per posting and per month — and what the AI actually adds over
   the free scorer — will be published here with real numbers from the
-  evaluation (phase 3b). No guessing.
+  evaluation once there are test ads the scorer was not tuned on. No guessing.
 
 ---
 
@@ -112,20 +112,19 @@ before you set up. To report a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Project status
 
-Built in phases. **Phases 1–3 are complete, and phase 3b (evaluation) is in progress:** project skeleton, the shared
+Built in phases. **Phases 1–3b are complete (the AI scorer and its evaluation tooling):** project skeleton, the shared
 rate-limited HTTP client, config loading, all three job-board sources
 (Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
-pre-filter, the free rules scorer, the optional AI scoring agent (built; being
-checked on real postings), and the `init`, `list`, `discover`, `run` and
-`score-one` commands.
+pre-filter, the free rules scorer, the optional AI scoring agent, the `eval` command that measures it, and the
+`init`, `list`, `discover`, `run` and `score-one` commands. Email alerts are next.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Skeleton + Greenhouse source + `init`/`list` | ✅ done |
 | 2 | Lever & Ashby sources, store, dedupe, pre-filter, `discover` | ✅ done |
 | 2b | Free rules scorer + `run`/`score-one` | ✅ done |
-| 3 | LLM scoring agent (optional) | 🔄 built, in review |
-| 3b | Evaluation + published cost numbers | 🔄 `eval` command built; baseline numbers pending |
+| 3 | LLM scoring agent (optional) | ✅ done |
+| 3b | Evaluation (`job-radar eval`), batch mode | ✅ done; published numbers wait for unseen test ads |
 | 4 | Email alerts & digest, reply-to-vote feedback | planned |
 | 5 | Job-alert emails (LinkedIn, Google, Etsy) | planned |
 | 6 | Open-source release: binaries, hosting template, full docs | planned |
