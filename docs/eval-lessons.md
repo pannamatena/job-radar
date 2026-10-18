@@ -194,6 +194,59 @@ prompt (both exact), with these differences:
 **Lesson:** to get a cheaper version of a measurement, adapt the cheaper
 mechanism to the real thing; don't simplify the thing to fit the mechanism.
 
+### 12. Three models, and ads I had not tuned on
+Later I wanted two things I did not have: a comparison that included the top
+model, and cases the rubric had never seen. The second was cheap to get. The
+tool had already stored 53 real postings, so `eval draft` turned ten of them
+into draft cases (a mix the scorer had rated high, middling and low), and I
+labelled them by hand from the ad text. Then I ran the same prompt on the same
+labels with three models: Haiku class (the default), Sonnet class and Opus
+class.
+
+Counted per scoring, on the 22 cases all three models scored:
+
+| | Haiku | Sonnet | Opus |
+|---|---|---|---|
+| Exact match | 75% | 54% | 41% |
+| Within ±1 | 100% | 100% | 100% |
+| Wrong alerts | 4 | 2 | 3 |
+| Missed good roles | 0 | 0 | 0 |
+| **Cost per scoring** | **$0.0013** | **$0.0115** | **$0.020 to $0.035** |
+
+On the ten new cases alone, which nothing had been tuned on, the exact matches
+were Haiku 7, Sonnet 6, Opus 5. None of the three missed a good role on them.
+
+What the numbers hide:
+- **The ranking flipped.** In section 10 the larger model matched my labels
+  better (69% against 61%). Here the cheap model does (75% against 54%). Between
+  the two runs I had relabelled some cases after rereading the ads and changed
+  the prompt. A ranking that reverses when a few labels and some prompt text
+  change is a sign the sets are too small to rank models on.
+- **My labels lean towards the cheap model.** I wrote and revised them while
+  watching its answers, and tuned the prompt on it. The ten new cases are the
+  fairer test, but ten cases and one repeat for the biggest model is weak
+  evidence.
+- **The bigger models lean high on 4s.** They gave 5 where I gave 4 on several
+  cases. At an alert threshold of 4 that rarely changes an alert, but it does
+  make exact match look worse.
+- **The one costly miss was the biggest model's.** On a job I rated 3, it gave
+  2, which would have dropped it below the daily digest line. The cheap model
+  gave 3 on all three repeats.
+
+Two checks on the real pipeline were more useful than the model comparison:
+- **The free scorer was wrong on 6 of the 10 new cases.** It gave a 4 to an
+  infrastructure-reliability role and a 3 to a manager role that I rated 2 and
+  1. This is the clearest measured case for the AI scorer.
+- **The gate was not hiding good roles.** The rules gate stops low rules scores
+  from ever reaching the AI. I lowered it once and sent the 22 postings it had
+  been stopping through the AI: all 22 scored 1. The gate was saving money
+  without losing a role, on that day's postings.
+
+**Lesson:** a bigger model is not automatically a better judge of *your*
+labels, and a model ranking from a few dozen cases is a hint, not a result.
+Drafting new cases from the postings the tool has already stored is the
+cheapest way to get ads the prompt has not seen.
+
 ## What it cost
 
 Almost every run was on the cheap model (Haiku class), roughly a tenth of a US
@@ -201,6 +254,12 @@ cent per ad, so a full 14-case, 3-repeat run cost about four cents. The one
 run on the larger model cost about 54 cents. The whole process, including that
 run, came to under a dollar. Cost was never the constraint; careful labelling
 was.
+
+The three-model comparison in section 12 cost about $1.80 in total, most of it
+the Opus-class runs (about $1.45). My own estimate for the first Opus run was
+about half the real cost, because I multiplied a per-scoring price by the wrong
+number of scorings. The result files record the cost of each scoring, so the
+total comes from adding those up, not from an estimate.
 
 ## If someone asks "how did you evaluate it?"
 

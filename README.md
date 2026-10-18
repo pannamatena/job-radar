@@ -85,6 +85,7 @@ make build
 ## Full guides
 
 - [getting-started.md](docs/getting-started.md) — install, `init`, first run.
+- [commands.md](docs/commands.md) — every command on one page, with examples to copy.
 - [configuration.md](docs/configuration.md) — every config field.
 - [adding-companies.md](docs/adding-companies.md) — supported boards, `discover`.
 - [rules-scorer.md](docs/rules-scorer.md) — how free scoring works.
@@ -94,7 +95,7 @@ make build
 - [evaluation.md](docs/evaluation.md) — measuring quality: label your own ads and run `job-radar eval`. [eval-lessons.md](docs/eval-lessons.md) tells how I used it and what went wrong.
 - [email-setup.md](docs/email-setup.md) — alerts & digest by email, and voting by reply.
 - [giving-feedback.md](docs/giving-feedback.md) — tell job-radar when it gets a job wrong (too high or too low), and turn those into test cases.
-- [job-alert-emails.md](docs/job-alert-emails.md) — LinkedIn/Google/Etsy *(phase 5)*.
+- [job-alert-emails.md](docs/job-alert-emails.md) — LinkedIn and other sites without an open feed *(phase 5)*.
 - [run-automatically.md](docs/run-automatically.md) — GitHub Actions *(phase 6)*.
 - [troubleshooting.md](docs/troubleshooting.md) · [faq.md](docs/faq.md) · [glossary.md](docs/glossary.md)
 
@@ -118,7 +119,7 @@ rate-limited HTTP client, config loading, all three job-board sources
 (Greenhouse, Lever, Ashby), a SQLite store with dedupe, the config-driven
 pre-filter, the free rules scorer, the optional AI scoring agent, the `eval` command that measures it, the
 email alerts, daily digest and reply-to-vote feedback, and the
-`init`, `list`, `discover`, `run`, `score-one`, `digest`, `feedback` and `report` commands. Next: running it automatically in the cloud.
+`init`, `list`, `show`, `discover`, `run`, `score-one`, `digest`, `feedback` and `report` commands. Next: running it automatically in the cloud.
 
 | Phase | What | Status |
 |---|---|---|
@@ -128,7 +129,7 @@ email alerts, daily digest and reply-to-vote feedback, and the
 | 3 | LLM scoring agent (optional) | ✅ done |
 | 3b | Evaluation (`job-radar eval`), batch mode | ✅ done; published numbers wait for unseen test ads |
 | 4 | Email alerts & digest, reply-to-vote feedback | ✅ done |
-| 5 | Job-alert emails (LinkedIn, Google, Etsy) | planned |
+| 5 | Job-alert emails (LinkedIn and other sites without an open feed) | planned |
 | 6 | Open-source release: binaries, hosting template, full docs | planned |
 
 Why it's built this way: see the **[Architecture Decision Records](docs/decisions/)**.

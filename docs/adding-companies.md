@@ -90,16 +90,16 @@ how each one behaves. If you're unsure, start with no filters, run
 
 ## Companies without a public board (`ats: none`)
 
-Some companies have no public job-board API — for example Google, or companies
-on SmartRecruiters (like Etsy). **job-radar never scrapes careers pages**
+Some companies have no public job-board API — for example large companies with
+their own careers site, or companies on SmartRecruiters. **job-radar never scrapes careers pages**
 ([ADR-0001](decisions/0001-never-scrape-linkedin-or-sign-in.md),
 [ADR-0002](decisions/0002-companies-without-a-usable-public-feed.md)). Instead,
 list them as `ats: none` with their careers link:
 
 ```yaml
-  - name: Google
+  - name: Acme
     ats: none
-    careers_url: "https://www.google.com/about/careers/..."
+    careers_url: "https://careers.example.com"
 ```
 
 These are covered by **that company's own job-alert emails**, which job-radar

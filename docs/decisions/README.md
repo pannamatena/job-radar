@@ -13,7 +13,7 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0007](0007-rules-first-ai-second-the-gate.md) | Rules first, AI second (the gate) | Accepted |
 | [ADR-0008](0008-profile-and-rubric-in-a-cached.md) | Profile and rubric in a cached system prompt, not fetched with tools | Accepted |
 | [ADR-0009](0009-cost-controls-built-in-not-bolted.md) | Cost controls built in, not bolted on | Accepted |
-| [ADR-0010](0010-model-choice-decided-by-evaluation-escalation.md) | Model choice decided by evaluation; escalation only if the data shows it's needed | Proposed |
+| [ADR-0010](0010-model-choice-decided-by-evaluation-escalation.md) | Model choice decided by evaluation; escalation only if the data shows it's needed | Accepted |
 | [ADR-0011](0011-evaluate-with-a-small-hand-labelled.md) | Evaluate with a small hand-labelled set, measured at the alert threshold | Accepted |
 | [ADR-0012](0012-pre-filter-rule-when-in-doubt.md) | Pre-filter rule: when in doubt, keep the posting | Accepted |
 | [ADR-0013](0013-telegram-as-the-default-instant-channel.md) | Telegram as the default instant channel, email as the fallback | Superseded by ADR-0024 |
@@ -39,6 +39,7 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0033](0033-years-of-experience-are-a-soft-signal.md) | Years of experience are a soft signal, not a blocker | Accepted |
 | [ADR-0034](0034-read-email-replies-over-imap-read-only.md) | Read vote replies over IMAP, read-only, from your own address only | Accepted |
 | [ADR-0035](0035-what-each-email-says-and-when.md) | What each email says, and when it is sent | Accepted |
+| [ADR-0036](0036-teach-the-scorer-with-a-notes-file-you-own.md) | Teach the scorer with a notes file you own, not a provider's hosted memory | Accepted |
 
 ## In one sentence each
 
@@ -77,3 +78,4 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0033](0033-years-of-experience-are-a-soft-signal.md)** — A shortfall in years of experience in work the user really does is a note in the gap line, not a reason to hide the role.
 - **[ADR-0034](0034-read-email-replies-over-imap-read-only.md)** — Replying "1 👍" to an email works, because the tool reads only your own replies, read-only, and nothing else in a reply can make it do anything; the third-party code that reads your mail is copied in and upgraded only by hand.
 - **[ADR-0035](0035-what-each-email-says-and-when.md)** — You hear about a good job once, get a summary once a day, and hear about a problem at most once a day.
+- **[ADR-0036](0036-teach-the-scorer-with-a-notes-file-you-own.md)** — What job-radar learns about you is a text file you own, you approve every line, and `eval` checks it helps, so it works with any provider.

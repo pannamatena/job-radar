@@ -108,6 +108,8 @@ and for turning mistakes into test cases.
 | `job-radar run --dry-run` | Shows what it would email, and sends nothing. |
 | `job-radar digest` / `digest --dry-run` | Sends (or shows) the digest now. |
 | `job-radar feedback sync` | Reads your email replies now. |
+| `job-radar list --scored` | Jobs scoring 3 or more, from the database, without waiting for the digest. Closed jobs are marked. |
+| `job-radar show <id>` | One job's score, why, gap and your vote. |
 | `job-radar list --low` | Recently seen jobs that scored below the digest line (to spot scores that are too low). |
 | `job-radar eval draft <id>` | Make a draft test case from a stored job. |
 | `job-radar report` | Recent runs, emails sent and your votes. |
@@ -120,3 +122,5 @@ and for turning mistakes into test cases.
   email ports. Try another network.
 - **No email arrived**: check spam, then run `job-radar email-test`. More in
   [troubleshooting.md](troubleshooting.md).
+
+All commands, with examples to copy: [commands.md](commands.md).

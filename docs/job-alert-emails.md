@@ -1,4 +1,4 @@
-# Job-alert emails (LinkedIn, Google, Etsy)
+# Job-alert emails (LinkedIn and other sites without an open feed)
 
 > 🚧 This guide is written in **phase 5**. It's a placeholder for now so links don't
 > break; see the [roadmap in the README](../README.md#project-status) for what's

@@ -65,6 +65,21 @@ job-radar feedback "greenhouse:acme/12345" up
 
 (Copy the id from the table. Quote it, because ids contain a colon.)
 
+### See the good scores, and one job in detail
+
+Scores of 3 and above otherwise show up only in the daily digest. To look at them
+any time:
+
+```sh
+job-radar list --scored          # score 3 or more, last 14 days
+job-radar list --scored --min 4
+job-radar show "greenhouse:acme/12345"   # score, scorer, why, gap, your vote
+```
+
+A job marked `[closed]` has gone from its company's board, so its link may no
+longer work. The saved ad text is kept, so you can still turn it into a test case
+with `job-radar eval draft`.
+
 > **Jobs the pre-filter dropped** aren't saved, so they can't be voted on. If
 > good jobs keep disappearing there, look at `job-radar list --all` and loosen
 > `pre_filter` in `config.yaml` (see [configuration.md](configuration.md)).

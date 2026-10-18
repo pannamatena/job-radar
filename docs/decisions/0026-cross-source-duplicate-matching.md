@@ -2,7 +2,7 @@
 
 **Status:** Accepted (approach decided in phase 2; mechanism built in phase 3 — see "Mechanism" below)
 
-**Context:** The same role often reaches the tool by more than one path — the company's own ATS board (Greenhouse/Lever/Ashby) and, later, a job-alert email (LinkedIn, Etsy…). They arrive with different stable IDs, so exact-ID dedupe (ADR, phase 2) treats them as separate postings. Without cross-source matching the user would get two alerts for one job and, with the LLM scorer on, pay to score it twice. The naive key "company + title + location" is tempting but wrong in both directions: it over-merges (two genuinely different roles can share a title) and under-merges (the same role can list its location differently on two sites).
+**Context:** The same role often reaches the tool by more than one path — the company's own ATS board (Greenhouse/Lever/Ashby) and, later, a job-alert email (from LinkedIn or another site). They arrive with different stable IDs, so exact-ID dedupe (ADR, phase 2) treats them as separate postings. Without cross-source matching the user would get two alerts for one job and, with the LLM scorer on, pay to score it twice. The naive key "company + title + location" is tempting but wrong in both directions: it over-merges (two genuinely different roles can share a title) and under-merges (the same role can list its location differently on two sites).
 
 **Options considered:**
 1. Exact-ID only, no cross-source matching: simple, but duplicate alerts and double scoring.
