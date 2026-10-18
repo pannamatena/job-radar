@@ -247,6 +247,57 @@ labels, and a model ranking from a few dozen cases is a hint, not a result.
 Drafting new cases from the postings the tool has already stored is the
 cheapest way to get ads the prompt has not seen.
 
+### 13. Changing a profile fact is not changing a rule
+One case stayed a point below my label however I looked at it: I had rated a
+management role 5, and the scorer kept giving 4. I first suspected the scorer
+had read a different copy of the ad. I fetched the company's own listing and
+compared it with the saved text; they matched, apart from formatting. The
+suspicion was wrong, and it took five minutes to check.
+
+The real reasons were two things the profile did not say or said too weakly:
+- My profile listed my own LLM project under "gaps" as a side project. The
+  scorer did what I had asked: it called it a gap. I rewrote it as relevant
+  experience that is bridgeable in management roles, with previous experience
+  weighing more in individual-contributor roles, and kept the honest fact that it
+  was not employer-paid. The flag the scorer had been raising disappeared.
+- My greenfield work was nowhere in the profile. Adding it changed no score,
+  but it is true and cheap to state.
+
+The score stayed at 4 for a third reason: the rubric says one manageable gap
+leaves a strong fit at 4, and the scorer could always name one. Only one of my 25
+labels was a 5, so there was nothing to tune the 4/5 boundary from, and I stopped
+there. At my alert threshold of 4 both scores alert me.
+
+Other changes that round, each measured on its own with three repeats:
+- **A rule "if the ad does not require its stack, the stack is not a gap".**
+  Neutral to slightly helpful; wrong alerts went from 3 to 2.
+- **Capping backend-heavy roles at 3.** My first wording was too broad. It
+  capped a UI-led React role I had rated 4 because the ad listed "strong backend
+  engineering", so the eval showed three missed good roles. I added an exception
+  for roles where frontend is clearly the main job, and the miss went away.
+- **Capping roles that need hands-on production LLM work at 3, for
+  individual-contributor roles only.** Exact match rose from 70% to 73%.
+- **Two wording rules**: say "confirm Ireland" for remote roles that name a
+  region, and "ask recruiter" when the work model is not stated. No score
+  changed, and the phrases appeared only where they belonged.
+
+Two things made these results believable:
+- **A free noise measurement.** One edit failed to apply, so the eval ran twice
+  on the same prompt. Exact match was 68% the first time and 67% the second,
+  with 3 and then 5 wrong alerts. A one-point move on one repeat is noise, and I
+  stopped reading single-repeat flips as effects.
+- **Keeping the baseline.** Every run was compared with the one before it, on the
+  same 25 cases, and the previous result file was never overwritten.
+
+Some rules could not be tested at all. A rule about counties near Dublin, one
+about agencies and one about evergreen listings had no ad in my stored postings
+to measure them on. I left them out. A rule I cannot measure is a guess.
+
+**Lesson:** when a score disagrees with you, first check what the scorer was
+actually given, then whether the profile says what you mean, and only then the
+rubric. Make each change alone, measure it against the last run, and expect a
+rule written from one example to be too broad.
+
 ## What it cost
 
 Almost every run was on the cheap model (Haiku class), roughly a tenth of a US
