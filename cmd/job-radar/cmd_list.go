@@ -29,8 +29,10 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	showAll := fs.Bool("all", false, "also show postings the pre-filter dropped")
 	showIDs := fs.Bool("ids", false, "show each posting's id (for `score-one`)")
 	low := fs.Bool("low", false, "list recently seen jobs that scored below your digest line (from the database, no network), to spot scores that are too low")
-	days := fs.Int("days", 14, "with --low: how many days back to look")
-	limit := fs.Int("limit", 30, "with --low: the most jobs to show")
+	scored := fs.Bool("scored", false, "list stored jobs scoring --min or more (from the database, no network)")
+	minScore := fs.Int("min", 3, "with --scored: the lowest score to show")
+	days := fs.Int("days", 14, "with --low or --scored: how many days back to look")
+	limit := fs.Int("limit", 30, "with --low or --scored: the most jobs to show")
 	noStore := fs.Bool("no-store", false, "don't record this run in the database (read-only)")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -43,6 +45,9 @@ func cmdList(ctx context.Context, logger *slog.Logger, args []string) error {
 	if *companiesOnly {
 		printCompanies(cfg)
 		return nil
+	}
+	if *scored {
+		return printScored(ctx, os.Stdout, *home, *minScore, *days, *limit, time.Now())
 	}
 	if *low {
 		return printLowScored(ctx, os.Stdout, cfg, *home, *days, *limit, time.Now())

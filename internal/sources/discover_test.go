@@ -43,8 +43,8 @@ func TestDetect(t *testing.T) {
 		},
 		{
 			name:            "unsupported smartrecruiters",
-			url:             "https://careers.etsy.com",
-			body:            `<a href="https://api.smartrecruiters.com/v1/companies/etsy/postings">jobs</a>`,
+			url:             "https://careers.example.com",
+			body:            `<a href="https://api.smartrecruiters.com/v1/companies/acme/postings">jobs</a>`,
 			wantUnsupported: "SmartRecruiters",
 		},
 		{

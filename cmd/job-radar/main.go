@@ -60,6 +60,8 @@ func run(args []string) int {
 		return exit(cmdInit(ctx, rest))
 	case "list":
 		return exit(cmdList(ctx, logger, rest))
+	case "show":
+		return exit(cmdShow(ctx, rest))
 	case "version", "--version", "-v":
 		fmt.Printf("job-radar %s\n", version.Version)
 		return 0
@@ -116,18 +118,23 @@ Usage:
 Available now:
   init            Create your config folder from a worked example.
   list            Fetch and print current postings for your watch-list.
+                  --scored [--min N] lists stored jobs by score; --low lists the ones below your digest line.
+  show            Show one stored job's score, why and gap. show <id>
   run             Fetch, score and print strong matches. --scorer rules|llm
   score-one       Score one posting and show why. --scorer llm shows the AI's
                   full transcript and cost.
   discover        Detect a company's job board from its careers URL.
   eval            Measure a scorer against your hand-labelled cases.
-                  --scorer rules|llm, --repeats N, --compare A B
+                  --scorer rules|llm, --repeats N, --compare A B.
+                  eval draft <id> turns a stored job into a draft test case.
   digest          Email the daily digest now (it also goes out with the first run after email.digest_time).
   report          Summary of recent runs, emails, AI cost and your votes. --days N
   feedback        Record 👍/👎 (feedback <id> up|down), or read your email replies (feedback sync).
   email-test      Send a short test email to check your email setup.
   version         Print the version.
   help            Show this help.
+
+Every command with its flags: docs/commands.md
 
 Your personal config lives in $JOB_RADAR_HOME (default ./private), which is
 never committed to git. Run 'job-radar init' to get started.

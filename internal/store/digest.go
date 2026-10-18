@@ -22,11 +22,15 @@ type ScoredPosting struct {
 	Scorer    string
 	Flags     []string
 	FirstSeen time.Time
+	// Closed means the company's board was read more recently than this job was
+	// last seen on it: the job has gone from the board.
+	Closed bool
 }
 
 const scoredPostingSelect = `
 	SELECT p.id, p.source, p.company, p.title, p.location, p.remote, p.url, p.first_seen_at,
-	       s.score, s.track, s.work_model, s.why, s.gap, s.scorer, s.flags
+	       s.score, s.track, s.work_model, s.why, s.gap, s.scorer, s.flags,
+	       p.last_seen_at < (SELECT MAX(q.last_seen_at) FROM postings q WHERE q.source = p.source AND q.company = p.company)
 	FROM postings p
 	JOIN scores s ON s.id = (SELECT MAX(id) FROM scores WHERE posting_id = p.id)
 	WHERE s.duplicate_of IS NULL AND s.score >= ?`
@@ -68,6 +72,16 @@ func (s *Store) LatestScore(ctx context.Context, postingID string) (int, bool, e
 	return n, true, nil
 }
 
+// ScoredByID is one posting with its latest score, if it has one. A posting
+// marked as a duplicate of another has no score of its own and is not found.
+func (s *Store) ScoredByID(ctx context.Context, postingID string) (ScoredPosting, bool, error) {
+	rows, err := s.queryScored(ctx, scoredPostingSelect+` AND p.id = ?`, 0, postingID)
+	if err != nil || len(rows) == 0 {
+		return ScoredPosting{}, false, err
+	}
+	return rows[0], true, nil
+}
+
 func (s *Store) queryScored(ctx context.Context, q string, args ...any) ([]ScoredPosting, error) {
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -79,7 +93,7 @@ func (s *Store) queryScored(ctx context.Context, q string, args ...any) ([]Score
 		var sp ScoredPosting
 		var remote, first, flags string
 		if err := rows.Scan(&sp.Posting.ID, &sp.Posting.Source, &sp.Posting.Company, &sp.Posting.Title, &sp.Posting.Location,
-			&remote, &sp.Posting.URL, &first, &sp.Score, &sp.Track, &sp.WorkModel, &sp.Why, &sp.Gap, &sp.Scorer, &flags); err != nil {
+			&remote, &sp.Posting.URL, &first, &sp.Score, &sp.Track, &sp.WorkModel, &sp.Why, &sp.Gap, &sp.Scorer, &flags, &sp.Closed); err != nil {
 			return nil, fmt.Errorf("store: digest scan: %w", err)
 		}
 		sp.Posting.Remote = posting.RemoteKind(strings.TrimSpace(remote))

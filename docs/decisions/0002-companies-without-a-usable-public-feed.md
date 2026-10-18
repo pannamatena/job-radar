@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-**Context:** Some companies on a user's watch-list have no public job API (e.g. Google's own careers site), or use a system whose feed isn't clearly open to third parties. Example: SmartRecruiters (used by Etsy) documents its Posting API for customers building their own career sites, is governed by the SAP API Policy, and its robots.txt disallows automated fetching.
+**Context:** Some companies on a user's watch-list have no public job API (a large company's own careers site, say), or use a system whose feed isn't clearly open to third parties. Example: SmartRecruiters documents its Posting API for customers building their own career sites, is governed by the SAP API Policy, and its robots.txt disallows automated fetching.
 
 **Options considered:**
 1. Scrape the careers pages.

@@ -133,3 +133,69 @@ func TestCaseName(t *testing.T) {
 		t.Errorf("got %q", got)
 	}
 }
+
+func TestListScoredShowsJobsAtOrAboveMin(t *testing.T) {
+	home, now := t.TempDir(), time.Now()
+	lowFixture(t, home, now)
+	var out bytes.Buffer
+	if err := printScored(context.Background(), &out, home, 3, 14, 30, now); err != nil {
+		t.Fatal(err)
+	}
+	got := out.String()
+	if !strings.Contains(got, "Role A") || !strings.Contains(got, "Role B") || strings.Contains(got, "Role C") {
+		t.Errorf("want scores 5 and 3 only:\n%s", got)
+	}
+	if strings.Index(got, "Role A") > strings.Index(got, "Role B") {
+		t.Errorf("best score should come first:\n%s", got)
+	}
+	if err := printScored(context.Background(), &out, home, 6, 14, 30, now); err == nil {
+		t.Error("--min 6 should be rejected")
+	}
+}
+
+func TestShowPrintsScoreAndReasons(t *testing.T) {
+	ctx, now := context.Background(), time.Now()
+	st := lowFixture(t, t.TempDir(), now)
+	var out bytes.Buffer
+	if err := printShow(ctx, &out, st, "greenhouse:x/2"); err != nil {
+		t.Fatal(err)
+	}
+	got := out.String()
+	for _, want := range []string{"Globex — Role B", "Score:  3", "rules scorer", "Gap:    gap Role B"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+	if err := printShow(ctx, &out, st, "greenhouse:x/99"); err == nil || !strings.Contains(err.Error(), "no posting") {
+		t.Errorf("unknown id should say so, got %v", err)
+	}
+}
+
+func TestClosedJobsAreMarked(t *testing.T) {
+	ctx, now := context.Background(), time.Now()
+	st := lowFixture(t, t.TempDir(), now)
+	// A later read of the same board that still lists only Role B (…/2).
+	still := posting.Posting{ID: "greenhouse:x/2", Source: "greenhouse", Company: "Globex", Title: "Role B",
+		Location: "Dublin", URL: "https://example.com/2", DescriptionText: "The job text."}
+	if _, err := st.SaveFetched(ctx, []posting.Posting{still}, now); err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	if err := printShow(ctx, &out, st, "greenhouse:x/1"); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Status: closed") {
+		t.Errorf("Role A is gone from the board and should show as closed:\n%s", out.String())
+	}
+	out.Reset()
+	if err := printShow(ctx, &out, st, "greenhouse:x/2"); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.String(), "closed") {
+		t.Errorf("Role B is still listed and must not show as closed:\n%s", out.String())
+	}
+	out.Reset()
+	if err := printScored(ctx, &out, t.TempDir(), 1, 14, 30, now); err != nil {
+		t.Fatal(err)
+	}
+}
