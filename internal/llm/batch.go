@@ -50,17 +50,22 @@ func (a *Anthropic) SendBatch(ctx context.Context, reqs []BatchRequest, progress
 	for batch.ProcessingStatus != anthropic.MessageBatchProcessingStatusEnded {
 		select {
 		case <-ctx.Done():
-			// Use a fresh context: the cancelled one can't make the call.
-			cctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-			_, _ = a.client.Messages.Batches.Cancel(cctx, batch.ID, anthropic.MessageBatchCancelParams{})
-			cancel()
+			a.cancelBatch(batch.ID)
 			return nil, ctx.Err()
 		case <-time.After(interval):
 		}
-		batch, err = a.client.Messages.Batches.Get(ctx, batch.ID, anthropic.MessageBatchGetParams{})
+		// Keep the id: on error Get returns a nil batch, and the error message
+		// below still needs it.
+		id := batch.ID
+		next, err := a.client.Messages.Batches.Get(ctx, id, anthropic.MessageBatchGetParams{})
 		if err != nil {
-			return nil, fmt.Errorf("anthropic: checking batch %s: %w", batch.ID, err)
+			if ctx.Err() != nil {
+				a.cancelBatch(id) // we were stopped while checking: don't leave it running
+				return nil, ctx.Err()
+			}
+			return nil, fmt.Errorf("anthropic: checking batch %s: %w", id, err)
 		}
+		batch = next
 		if progress != nil {
 			c := batch.RequestCounts
 			progress(int(c.Succeeded+c.Errored+c.Canceled+c.Expired), len(reqs))
@@ -100,4 +105,14 @@ func (a *Anthropic) SendBatch(ctx context.Context, reqs []BatchRequest, progress
 		out = append(out, res)
 	}
 	return out, nil
+}
+
+// cancelBatch asks the server to stop a batch so it doesn't keep running (and
+// costing money) after we have given up on it. It uses a fresh context because
+// the caller's is usually the one that was cancelled. Failure is ignored: there
+// is nothing more we can do about it.
+func (a *Anthropic) cancelBatch(id string) {
+	cctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	_, _ = a.client.Messages.Batches.Cancel(cctx, id, anthropic.MessageBatchCancelParams{})
 }
