@@ -115,3 +115,24 @@ func TestSendBatch_CancelsWhenContextIsCancelled(t *testing.T) {
 		t.Error("the batch should be cancelled on the server so nothing keeps running")
 	}
 }
+
+func TestSendBatch_PollFailureIsAnErrorNotAPanic(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			http.Error(w, `{"type":"error","error":{"type":"api_error","message":"down"}}`, http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, strings.NewReplacer("%s", "in_progress", "%d", "0").Replace(batchJSON))
+	}))
+	defer srv.Close()
+	a := &Anthropic{
+		client:       anthropic.NewClient(option.WithAPIKey("test"), option.WithBaseURL(srv.URL), option.WithMaxRetries(0)),
+		pollInterval: time.Millisecond,
+	}
+	_, err := a.SendBatch(context.Background(), []BatchRequest{{ID: "c0", Request: Request{Model: "m", MaxTokens: 1,
+		Messages: []Message{{Role: RoleUser, Blocks: []Block{{Type: BlockText, Text: "x"}}}}}}}, nil)
+	if err == nil || !strings.Contains(err.Error(), "checking batch") {
+		t.Fatalf("want a 'checking batch' error naming the batch, got %v", err)
+	}
+}
