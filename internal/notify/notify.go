@@ -51,6 +51,11 @@ type Message struct {
 	Subject  string
 	Intro    string
 	Sections []Section
+	// Leads are unscored search results from other sites, shown after the jobs.
+	// They are not numbered and can't be voted on. NewSites lists sites seen for
+	// the first time, so the reader can sign up for their job alerts.
+	Leads    []Lead
+	NewSites []string
 }
 
 // Sent is what a notifier reports back, so the caller can record it.

@@ -25,4 +25,4 @@ var SecurityNotice string
 // user confirms during init. Keep this in step with the "Last updated" date at
 // the bottom of docs/security-and-privacy.md: bump both together when the
 // notice changes, so returning users are asked to re-read it.
-const NoticeVersion = "2026-10-04"
+const NoticeVersion = "2026-10-18"

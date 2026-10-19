@@ -17,6 +17,16 @@ import (
 	"github.com/pannamatena/job-radar/internal/store"
 )
 
+// notMonday returns t, or the day before if t is a Monday. On Mondays the digest
+// adds a "still open from earlier weeks" section, which tests about other parts
+// of the digest should not depend on.
+func notMonday(t time.Time) time.Time {
+	if t.In(time.Local).Weekday() == time.Monday {
+		return t.AddDate(0, 0, -1)
+	}
+	return t
+}
+
 // lowFixture stores three scored jobs: 5 (alerted), 3 (digest) and 2 (just below).
 func lowFixture(t *testing.T, home string, now time.Time) *store.Store {
 	t.Helper()
@@ -61,7 +71,7 @@ func TestListLowShowsOnlyBelowTheDigestLine(t *testing.T) {
 }
 
 func TestDigestAddsNearMissesButNeverAloneAndCanBeOff(t *testing.T) {
-	ctx, now := context.Background(), time.Now()
+	ctx, now := context.Background(), notMonday(time.Now())
 	st := lowFixture(t, t.TempDir(), now)
 	cfg := &config.Config{Rules: config.Rules{Thresholds: config.Thresholds{Alert: 4, Digest: 3}}}
 	msg, n, err := buildDigest(ctx, cfg, st, now, now.Add(-24*time.Hour))

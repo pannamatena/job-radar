@@ -190,7 +190,13 @@ func (s *Rules) locationFit(location, workModel string) (ok bool, flag string) {
 	}
 	switch workModel {
 	case "not_stated":
-		// A missing work model is never a reason to penalise (ADR-0012).
+		// A missing work model is never a reason to penalise (ADR-0012), but a
+		// location that names a specific place which is neither home nor a region
+		// the user works in is clearly outside: an office elsewhere, or a remote
+		// role not open to them.
+		if s.clearlyOutside(location) {
+			return false, FlagOutsideHomeArea
+		}
 		return true, ""
 	case "remote":
 		if s.remoteOK(location) {
@@ -221,6 +227,23 @@ func (s *Rules) officeModelFit(policy, location string) (ok bool, flag string) {
 		}
 		return false, FlagOutsideHomeArea
 	}
+}
+
+// clearlyOutside reports whether a location names a specific place that is
+// not home, not a region the user can work in, and not just "remote". An
+// empty location is unknown, so it is never "clearly outside". A location
+// that lists several places ("Budapest; Manchester") is fine if any is acceptable.
+func (s *Rules) clearlyOutside(location string) bool {
+	l := strings.ToLower(strings.TrimSpace(location))
+	if l == "" || isGenericRemote(l) || s.isHome(location) || s.isBareRegion(location) {
+		return false
+	}
+	for _, r := range s.loc.AllowedWorkModels.RemoteOpenTo {
+		if rl := strings.ToLower(strings.TrimSpace(r)); rl != "" && strings.Contains(l, rl) {
+			return false
+		}
+	}
+	return true
 }
 
 // isBareRegion reports whether a location names only a region the user can

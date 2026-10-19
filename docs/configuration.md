@@ -44,6 +44,12 @@ with `scorer: llm` it's the free first pass that decides what reaches the AI.
 The [AI-scorer settings](#llm-fields): model, cost caps and prices. Only
 checked when `scorer` is `llm`. See [ai-scorer.md](ai-scorer.md).
 
+### `search`
+
+Under `search:` — find jobs by web search, not only on the boards of companies you
+listed. Off by default; see [finding-jobs-by-search.md](finding-jobs-by-search.md).
+Fields are in [Search fields](#search-fields).
+
 ### `notice`
 Records that you've read the security-and-privacy notice. Set by `job-radar init`;
 you don't normally edit it. See [notice](#notice-fields).
@@ -181,6 +187,29 @@ million tokens**.
 | `last_checked` | The date (`YYYY-MM-DD`) you last compared these with the provider's pricing page. job-radar warns when it's more than 90 days old. |
 | `source` | The pricing page the numbers came from. |
 | `models` | A map of model id → prices: `input`, `output`, `cache_write` (writing the cached prompt), `cache_read` (reading it), `batch_input`, `batch_output` (the batch API, used for evaluation later). |
+
+---
+
+## Search fields
+
+Under `search:` — finding jobs by web search ([ADR-0037](decisions/0037-find-jobs-by-search-read-them-through-board-apis.md),
+guide: [finding-jobs-by-search.md](finding-jobs-by-search.md)). Only validated when
+`enabled` is `true`. A search costs about a cent plus tokens, so it is capped.
+
+| Field | What it does | Default |
+|---|---|---|
+| `enabled` | Switches web search on. | `false` |
+| `provider` | Which search provider to use. Only `anthropic` ships today; others are added in code ([how](finding-jobs-by-search.md#using-another-provider)). | `anthropic` |
+| `model` | The model that runs the searches, separate from `llm.model`. Needs an entry under `llm.pricing.models`. | `claude-haiku-5-5` |
+| `price_per_search_usd` | What the provider charges for each web search, on top of tokens. Use `0` if there is no per-search charge. | `0.01` |
+| `tracks` | The tracks to search the web for, for example `[manager, lead_ic]`. Each must be a track under `rules.tracks`. A track not listed here is only matched against your free watch-list boards. | — (required) |
+| `queries` | A map of track name → list of queries. Queries restricted to a job-board host (`site:jobs.ashbyhq.com …`) find postings. The place goes in the query, because the search tool can't be set to some countries. | — (required per searched track) |
+| `queries_per_run` | At most this many queries per run. The rest wait for the next run, in rotation, so with two runs a day every query still runs about once a day. `0` means all. | `0` |
+| `max_searches_per_query` | How many searches the model may make for one query (1–5). | `2` |
+| `monthly_spend_cap_usd` | Once the estimated search spend this calendar month reaches this, searching stops until next month. | `5` |
+| `blocked_domains` | Sites never to take results from, as bare domains (`example.com`). | none |
+| `ignore_companies` | Company names whose postings are dropped, for example your own employer. | none |
+| `link_domains` | Well-known sites whose links are shown as normal links among the digest's unscored leads. Every other site is shown as text that can't become a link, with a warning. job-radar never opens any of them. | `["linkedin.com"]` |
 
 ---
 

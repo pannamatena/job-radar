@@ -41,8 +41,9 @@ read only your own files and database.
 
 | Command | What it does |
 |---|---|
-| `job-radar run` | 🌐💰 The full pipeline: fetch, filter, score, record, email alerts, send the digest when it is due, and read your reply votes. |
+| `job-radar run` | 🌐💰 The full pipeline: fetch, search the web (if switched on), filter, score, record, email alerts, send the digest when it is due, and read your reply votes. |
 | `job-radar run --dry-run` | 🌐💰 The same, but it marks nothing as seen and sends no email. AI spend is still recorded because it is real. Scores are saved. |
+| `job-radar run --no-search` | 🌐💰 Skips web search for this run, when `search.enabled` is on. Search costs money; see [finding-jobs-by-search.md](finding-jobs-by-search.md). |
 | `job-radar run --scorer llm` | 🌐💰 Uses the AI scorer for this run, whatever your config says (`--scorer rules` for the free one). |
 | `job-radar score-one greenhouse:acme/1234567` | 💰 Scores one stored job (an id or its link) and shows why. With `--scorer llm` it shows the AI's whole transcript and its cost. |
 

@@ -41,8 +41,8 @@ func TestMigrationsRunAndAreIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v != 4 {
-		t.Errorf("schema version = %d, want 4", v)
+	if v != 5 {
+		t.Errorf("schema version = %d, want 5", v)
 	}
 }
 
@@ -161,5 +161,48 @@ func TestBackup(t *testing.T) {
 	}
 	if _, err := os.Stat(missing.path + ".bak"); !os.IsNotExist(err) {
 		t.Errorf("no backup should be created for a missing db")
+	}
+}
+
+func TestSearchRunsAndLeads(t *testing.T) {
+	ctx, now := context.Background(), time.Now()
+	st, err := Open(filepath.Join(t.TempDir(), "radar.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+
+	if n, _ := st.SearchQueriesRun(ctx); n != 0 {
+		t.Errorf("no queries run yet, got %d", n)
+	}
+	for _, r := range []SearchRun{{now, 3, 4, 0.05}, {now, 3, 3, 0.04}} {
+		if err := st.RecordSearchRun(ctx, r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if n, _ := st.SearchQueriesRun(ctx); n != 6 {
+		t.Errorf("queries run = %d, want 6", n)
+	}
+	spend, _ := st.SearchSpendSince(ctx, StartOfMonth(now))
+	if spend < 0.089 || spend > 0.091 {
+		t.Errorf("spend = %f, want 0.09", spend)
+	}
+	if old, _ := st.SearchSpendSince(ctx, now.Add(time.Hour)); old != 0 {
+		t.Errorf("nothing was spent after now, got %f", old)
+	}
+
+	lead := Lead{URL: "https://example.com/job/1", Host: "example.com", Title: "Engineering Manager"}
+	if isNew, err := st.SaveLead(ctx, lead, now); err != nil || !isNew {
+		t.Fatalf("first save: new=%v err=%v", isNew, err)
+	}
+	if isNew, _ := st.SaveLead(ctx, lead, now.Add(time.Minute)); isNew {
+		t.Error("the same lead must be stored once")
+	}
+	got, err := st.LeadsSince(ctx, now.Add(-time.Hour))
+	if err != nil || len(got) != 1 || got[0].Host != "example.com" || got[0].Known {
+		t.Errorf("leads: %+v err=%v", got, err)
+	}
+	if got, _ := st.LeadsSince(ctx, now.Add(time.Hour)); len(got) != 0 {
+		t.Errorf("no leads after the window, got %d", len(got))
 	}
 }

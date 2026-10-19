@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -17,6 +18,7 @@ import (
 	"github.com/pannamatena/job-radar/internal/notify"
 	"github.com/pannamatena/job-radar/internal/posting"
 	"github.com/pannamatena/job-radar/internal/scorer"
+	"github.com/pannamatena/job-radar/internal/search"
 	"github.com/pannamatena/job-radar/internal/store"
 	"github.com/pannamatena/job-radar/internal/version"
 )
@@ -30,6 +32,7 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) (runErr err
 	home := fs.String("home", config.Home(), "config directory to read")
 	dryRun := fs.Bool("dry-run", false, "don't mark postings as seen or record the run (AI spend is still recorded: it's real)")
 	scorerOverride := fs.String("scorer", "", "override the config's scorer for this run: rules or llm")
+	noSearch := fs.Bool("no-search", false, "skip web search for this run (search costs money)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -77,6 +80,17 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) (runErr err
 	var problems []string
 	if !*dryRun {
 		problems = recordSourceHealth(ctx, logger, st, outcomes, started)
+	}
+
+	// Jobs found by web search join the watch-list's postings (ADR-0037).
+	if cfg.Search.Enabled && !*noSearch {
+		searcher, err := search.New(cfg.Search.Provider, cfg.Search.Model)
+		if err != nil {
+			problems = append(problems, "Web search was skipped: "+err.Error())
+		} else {
+			sk, sd, sp := searchStage(ctx, logger, cfg, st, pre, searcher, boardFetcher(client), *dryRun, time.Now(), os.Stdout)
+			kept, dropped, problems = append(kept, sk...), append(dropped, sd...), append(problems, sp...)
+		}
 	}
 
 	// Record which postings are new to the user (unless this is a dry run).
@@ -154,27 +168,19 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) (runErr err
 	}
 
 	maybeSendDigest(ctx, logger, cfg, st, *dryRun, os.Stdout)
-	sendProblem(ctx, logger, cfg, st, problems, *dryRun, os.Stdout)
 
 	fmt.Printf("\nScored %d postings (%d dropped by pre-filter, %d cross-source duplicates). %d strong, %d new this run.\n",
 		len(results), len(dropped), len(duplicateOf), len(alerts), len(newIDs))
 
 	stats := store.RunStats{StartedAt: started, FinishedAt: time.Now(), NewPostings: len(newIDs), Scored: len(results)}
 	if gate != nil {
-		fmt.Printf("AI scorer (%s): %d sent, %d reused from earlier runs, %d below the rules gate, %d skipped by caps, %d fell back to rules.\n",
-			gate.AI.Model(), gate.Sent, gate.Cached, gate.NotSent, gate.SkippedCap, gate.Unscored)
-		fmt.Printf("AI cost this run: ~$%.4f. This month: ~$%.4f of your $%.2f cap.\n",
-			gate.RunCostUSD, gate.SpentThisMonthUSD, cfg.LLM.MonthlySpendCapUSD)
-		if cap := cfg.LLM.MonthlySpendCapUSD; cap > 0 && gate.SpentThisMonthUSD >= cap {
-			problems = append(problems, fmt.Sprintf("The AI monthly spend cap ($%.2f) is reached, so new postings keep their free rules score until next month (or until you raise llm.monthly_spend_cap_usd).", cap))
+		if notice := aiRunSummary(os.Stdout, logger, cfg, gate, &stats); notice != "" {
+			problems = append(problems, notice)
 		}
-		if gate.SkippedCap > 0 {
-			fmt.Println("Some postings kept their free rules score because a cap was reached; they'll be AI-scored on a later run if they're still open.")
-		}
-		stats.CostEstimate, stats.AISent, stats.AISkipped = gate.RunCostUSD, gate.Sent, gate.SkippedCap
-		logger.Info("ai scoring", "sent", gate.Sent, "cached", gate.Cached, "not_sent", gate.NotSent,
-			"skipped_cap", gate.SkippedCap, "unscored", gate.Unscored, "cost_usd", gate.RunCostUSD)
 	}
+	// The one problem email goes out last, after every part of the run has had
+	// the chance to add to problems (it used to go first and miss the AI cap).
+	sendProblem(ctx, logger, cfg, st, problems, *dryRun, os.Stdout)
 	if !*dryRun {
 		if _, err := st.RecordRun(ctx, stats); err != nil {
 			logger.Warn("could not record run", "error", err.Error())
@@ -183,4 +189,21 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) (runErr err
 	logger.Info("run complete", "scored", len(results), "dropped", len(dropped),
 		"strong", len(alerts), "new", len(newIDs))
 	return nil
+}
+
+// aiRunSummary prints how the AI scorer did, fills in the run's AI stats, and
+// returns a notice for the user if the monthly spend cap was reached or is close.
+func aiRunSummary(w io.Writer, logger *slog.Logger, cfg *config.Config, gate *agent.Gated, stats *store.RunStats) string {
+	fmt.Fprintf(w, "AI scorer (%s): %d sent, %d reused from earlier runs, %d below the rules gate, %d skipped by caps, %d fell back to rules.\n",
+		gate.AI.Model(), gate.Sent, gate.Cached, gate.NotSent, gate.SkippedCap, gate.Unscored)
+	fmt.Fprintf(w, "AI cost this run: ~$%.4f. This month: ~$%.4f of your $%.2f cap.\n",
+		gate.RunCostUSD, gate.SpentThisMonthUSD, cfg.LLM.MonthlySpendCapUSD)
+	if gate.SkippedCap > 0 {
+		fmt.Fprintln(w, "Some postings kept their free rules score because a cap was reached; they'll be AI-scored on a later run if they're still open.")
+	}
+	stats.CostEstimate, stats.AISent, stats.AISkipped = gate.RunCostUSD, gate.Sent, gate.SkippedCap
+	logger.Info("ai scoring", "sent", gate.Sent, "cached", gate.Cached, "not_sent", gate.NotSent,
+		"skipped_cap", gate.SkippedCap, "unscored", gate.Unscored, "cost_usd", gate.RunCostUSD)
+	return capNotice("AI", "so new postings keep their free rules score until next month",
+		"llm.monthly_spend_cap_usd", gate.SpentThisMonthUSD-gate.RunCostUSD, gate.SpentThisMonthUSD, cfg.LLM.MonthlySpendCapUSD)
 }

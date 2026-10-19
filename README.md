@@ -95,6 +95,7 @@ make build
 - [evaluation.md](docs/evaluation.md) — measuring quality: label your own ads and run `job-radar eval`. [eval-lessons.md](docs/eval-lessons.md) tells how I used it and what went wrong.
 - [email-setup.md](docs/email-setup.md) — alerts & digest by email, and voting by reply.
 - [giving-feedback.md](docs/giving-feedback.md) — tell job-radar when it gets a job wrong (too high or too low), and turn those into test cases.
+- [finding-jobs-by-search.md](docs/finding-jobs-by-search.md) — optional: find jobs by web search, not only on the companies you listed.
 - [job-alert-emails.md](docs/job-alert-emails.md) — LinkedIn and other sites without an open feed *(phase 5)*.
 - [run-automatically.md](docs/run-automatically.md) — GitHub Actions *(phase 6)*.
 - [troubleshooting.md](docs/troubleshooting.md) · [faq.md](docs/faq.md) · [glossary.md](docs/glossary.md)
@@ -129,6 +130,7 @@ email alerts, daily digest and reply-to-vote feedback, and the
 | 3 | LLM scoring agent (optional) | ✅ done |
 | 3b | Evaluation (`job-radar eval`), batch mode | ✅ done; published numbers wait for unseen test ads |
 | 4 | Email alerts & digest, reply-to-vote feedback | ✅ done |
+| 4c | Find jobs by web search (Ashby, Greenhouse, Lever), leads from other sites, spend cap | ✅ done |
 | 5 | Job-alert emails (LinkedIn and other sites without an open feed) | planned |
 | 6 | Open-source release: binaries, hosting template, full docs | planned |
 

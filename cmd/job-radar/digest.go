@@ -140,6 +140,22 @@ func buildDigest(ctx context.Context, cfg *config.Config, st *store.Store, now, 
 			})
 		}
 	}
+	// Unscored leads from web search, written so they can't be clicked by
+	// accident. Like near misses, never the reason for a digest on its own.
+	if cfg.Search.Enabled {
+		leads, err := st.LeadsSince(ctx, windowStart)
+		if err != nil {
+			return notify.Message{}, 0, err
+		}
+		for _, l := range leads {
+			msg.Leads = append(msg.Leads, notify.Lead{Title: l.Title, Host: l.Host, URL: l.URL, Known: l.Known})
+		}
+		if len(msg.Leads) > 0 {
+			if msg.NewSites, err = st.NewLeadSites(ctx, windowStart); err != nil {
+				return notify.Message{}, 0, err
+			}
+		}
+	}
 	noun := "roles"
 	if newCount == 1 {
 		noun = "role"

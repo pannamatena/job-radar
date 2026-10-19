@@ -216,3 +216,28 @@ func TestScore_OnsiteNeverIsRejectedEvenAtHome(t *testing.T) {
 		t.Errorf("hybrid at home should not be flagged, got %v", r.Flags)
 	}
 }
+
+// With no work model stated the role is kept, unless the location names a
+// specific place that is neither home nor a region the user works in.
+func TestScore_NoWorkModelButClearlyOutsideIsCappedAndFlagged(t *testing.T) {
+	s := NewRules(testRules(), homeLocation()) // home Manchester; remote open to UK/Europe/EMEA
+	for _, loc := range []string{"India", "San Francisco, CA", "Berlin", "United States; Canada"} {
+		p := posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteUnknown, Location: loc}
+		r := score(t, s, p)
+		if r.Score > locationCap || !slices.Contains(r.Flags, FlagOutsideHomeArea) {
+			t.Errorf("%q: want capped at %d with %s, got %d %v", loc, locationCap, FlagOutsideHomeArea, r.Score, r.Flags)
+		}
+	}
+}
+
+func TestScore_NoWorkModelAtHomeInRegionOrUnknownIsKept(t *testing.T) {
+	s := NewRules(testRules(), homeLocation())
+	for _, loc := range []string{"Manchester", "Manchester, UK", "Budapest; Manchester", "Remote (EMEA); Remote (US)",
+		"Europe", "United Kingdom", "Remote", "Anywhere", ""} {
+		p := posting.Posting{Title: "Engineering Manager", Remote: posting.RemoteUnknown, Location: loc}
+		r := score(t, s, p)
+		if slices.Contains(r.Flags, FlagOutsideHomeArea) || r.Score <= locationCap {
+			t.Errorf("%q: should not be penalised, got %d %v\n%v", loc, r.Score, r.Flags, r.Breakdown)
+		}
+	}
+}

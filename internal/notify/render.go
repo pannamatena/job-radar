@@ -39,6 +39,7 @@ func RenderText(m Message) string {
 			}
 		}
 	}
+	b.WriteString(leadsText(m))
 	if n > 0 {
 		b.WriteString("\n" + replyHint + "\n")
 	}
@@ -79,6 +80,7 @@ func RenderHTML(m Message) string {
 			b.WriteString(`</div>`)
 		}
 	}
+	b.WriteString(leadsHTML(m))
 	if n > 0 {
 		fmt.Fprintf(&b, `<p style="color:#555;font-size:13px;margin-top:24px">%s</p>`, esc(replyHint))
 	}

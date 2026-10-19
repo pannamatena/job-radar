@@ -20,6 +20,29 @@ const failuresBeforeNotice = 3
 // problemInterval is the least time between two problem emails.
 const problemInterval = 24 * time.Hour
 
+// capWarnFraction is how much of a monthly spend cap is used when the user gets
+// an early warning (once, on the run that crosses it).
+const capWarnFraction = 0.8
+
+// capNotice words what to tell the user about a monthly spend cap, or returns ""
+// if there is nothing to say. before and after are the estimated spend this
+// month at the start and end of the run. It says so when the cap is reached
+// (every run until the month ends, but a problem email goes out at most once a
+// day), and warns once, on the run that takes spend past 80% of the cap.
+func capNotice(what, consequence, setting string, before, after, cap float64) string {
+	if cap <= 0 {
+		return ""
+	}
+	if after >= cap {
+		return fmt.Sprintf("The %s monthly spend cap ($%.2f) is reached, %s (or until you raise %s).", what, cap, consequence, setting)
+	}
+	if after >= cap*capWarnFraction && before < cap*capWarnFraction {
+		return fmt.Sprintf("Your %s spend this month is about $%.2f, over %d%% of your $%.2f cap. It stops at the cap; raise %s if you want more.",
+			what, after, int(capWarnFraction*100), cap, setting)
+	}
+	return ""
+}
+
 // recordSourceHealth updates each company's failure streak and returns a
 // sentence for every board that has now failed several runs in a row.
 func recordSourceHealth(ctx context.Context, logger *slog.Logger, st *store.Store, outcomes []sourceOutcome, now time.Time) []string {

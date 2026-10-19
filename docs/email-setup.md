@@ -10,10 +10,16 @@ minutes and costs nothing.
 | Email | When | What's in it |
 |---|---|---|
 | **Match alert** | At the end of a run, when there are strong matches you haven't been told about (score at or above `thresholds.alert`, default 4). One email per run, not one per job. | Each job: number, score, company, title, track, work model, location, a one-line **why** and **gap**, and a link. |
-| **Daily digest** | With the first run after `email.digest_time` (default 08:00 your time), once a day. | New roles since the last digest scoring `thresholds.digest` or higher (default 3), grouped by your tracks. On Mondays, roles still open from earlier weeks too. Nothing new means no email. |
-| **Problem notice** | When something needs your attention: a run failed, a job board has failed three runs in a row, or the AI spend cap is reached. | What happened. At most one a day. |
+| **Daily digest** | With the first run after `email.digest_time` (default 08:00 your time), once a day. | New roles since the last digest scoring `thresholds.digest` or higher (default 3), grouped by your tracks. On Mondays, roles still open from earlier weeks too. If you use [web search](finding-jobs-by-search.md), unscored leads from other sites follow, written so they can't be clicked. Nothing new means no email. |
+| **Problem notice** | When something needs your attention: a run failed, a job board has failed three runs in a row, an AI or web-search spend cap is reached, or a run takes either past 80% of its cap (a one-time early warning). | What happened. At most one a day. |
 
 Nothing is ever sent twice for the same job.
+
+> **About spend notices.** job-radar compares its own *estimate* of what you've spent this
+> month with the cap you set (`llm.monthly_spend_cap_usd`, `search.monthly_spend_cap_usd`).
+> It can't see your provider account's real credit balance. If that runs out, requests start to
+> fail: web search then fails and you get a problem notice, and AI scoring falls back to the free
+> rules score. Set a limit with your provider too.
 
 ## 1. Make the job-radar email account
 
