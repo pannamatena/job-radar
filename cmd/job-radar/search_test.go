@@ -54,7 +54,7 @@ func runSearchStage(t *testing.T, cfg *config.Config, st *store.Store, s search.
 	}
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	kept, _, problems = searchStage(context.Background(), logger, cfg, st, filter.New(cfg.PreFilter), s, fetch, dry, time.Now(), &buf)
+	kept, _, problems = searchStage(context.Background(), logger, cfg, st, filter.New(cfg.PreFilter), s, fetch, nil, dry, time.Now(), &buf)
 	return kept, problems, buf.String()
 }
 

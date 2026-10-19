@@ -9,6 +9,7 @@ import (
 
 	"github.com/pannamatena/job-radar/internal/config"
 	"github.com/pannamatena/job-radar/internal/posting"
+	"github.com/pannamatena/job-radar/internal/sources"
 )
 
 const jobID = "43dbf072-0fc1-48c9-8c1e-7416db7d4a14"
@@ -138,7 +139,7 @@ func TestResolveReadsBoardsOnceKeepsOnlyFoundPostingsAndRespectsLists(t *testing
 		return nil, errors.New("503")
 	}
 	watch := []config.Company{{Name: "Mine", ATS: "greenhouse", Slug: "mine"}}
-	got, stats, problems := Resolve(context.Background(), fetch, refs, watch, []string{"Old Job"})
+	got, stats, problems := Resolve(context.Background(), fetch, nil, refs, watch, []string{"Old Job"})
 
 	var ids []string
 	for _, p := range got {
@@ -162,6 +163,135 @@ func TestResolveReadsBoardsOnceKeepsOnlyFoundPostingsAndRespectsLists(t *testing
 	}
 	if stats.Read+stats.OnWatch+stats.Ignored+stats.Closed+stats.FailedJobs != stats.Found {
 		t.Error("every found posting must be accounted for")
+	}
+}
+
+// stubBoards builds a FetchBoard and a FetchOne over the same fake boards and
+// counts the requests each one receives.
+type stubBoards struct {
+	open       map[string][]string // "ats:slug" -> open job ids
+	lists      map[string]int
+	singles    map[string]int
+	noSingle   map[string]bool // boards with no single-posting read (like Ashby)
+	singleFail map[string]bool // "ats:slug/id" fails with a server error
+}
+
+func newStubBoards(open map[string][]string) *stubBoards {
+	return &stubBoards{open: open, lists: map[string]int{}, singles: map[string]int{}, noSingle: map[string]bool{}, singleFail: map[string]bool{}}
+}
+
+func (b *stubBoards) post(ats, slug, id string) posting.Posting {
+	return posting.Posting{ID: posting.MakeID(ats, slug+"/"+id), Company: slug, Title: "Role " + id}
+}
+
+func (b *stubBoards) fetch(_ context.Context, c config.Company) ([]posting.Posting, error) {
+	b.lists[c.ATS+":"+c.Slug]++
+	var out []posting.Posting
+	for _, id := range b.open[c.ATS+":"+c.Slug] {
+		out = append(out, b.post(c.ATS, c.Slug, id))
+	}
+	return out, nil
+}
+
+func (b *stubBoards) one(_ context.Context, c config.Company, id string) (posting.Posting, bool, error) {
+	key := c.ATS + ":" + c.Slug
+	if b.noSingle[key] {
+		return posting.Posting{}, false, sources.ErrNoSingleRead
+	}
+	b.singles[key]++
+	if b.singleFail[key+"/"+id] {
+		return posting.Posting{}, false, errors.New("HTTP 500")
+	}
+	for _, o := range b.open[key] {
+		if o == id {
+			return b.post(c.ATS, c.Slug, id), true, nil
+		}
+	}
+	return posting.Posting{}, false, nil
+}
+
+func refsFor(ats, slug string, ids ...string) []Ref {
+	var out []Ref
+	for _, id := range ids {
+		out = append(out, Ref{ATS: ats, Slug: slug, JobID: id})
+	}
+	return out
+}
+
+func TestResolveReadsFewJobsOneByOne(t *testing.T) {
+	b := newStubBoards(map[string][]string{"greenhouse:acme": {"1", "2", "3", "4"}})
+	got, stats, problems := Resolve(context.Background(), b.fetch, b.one, refsFor("greenhouse", "acme", "1", "9"), nil, nil)
+
+	if len(got) != 1 || got[0].ID != "greenhouse:acme/1" {
+		t.Errorf("postings = %+v", got)
+	}
+	if b.singles["greenhouse:acme"] != 2 || b.lists["greenhouse:acme"] != 0 {
+		t.Errorf("two found jobs are read one by one: singles=%v lists=%v", b.singles, b.lists)
+	}
+	if want := (ResolveStats{Found: 2, Read: 1, Closed: 1, BoardsOK: 1}); stats != want || len(problems) != 0 {
+		t.Errorf("stats = %+v (want %+v), problems = %v", stats, want, problems)
+	}
+}
+
+func TestResolveReadsTheWholeBoardFromThreeJobs(t *testing.T) {
+	b := newStubBoards(map[string][]string{"lever:acme": {"1", "2", "3"}})
+	got, stats, _ := Resolve(context.Background(), b.fetch, b.one, refsFor("lever", "acme", "1", "2", "3"), nil, nil)
+
+	if len(got) != 3 || b.lists["lever:acme"] != 1 || b.singles["lever:acme"] != 0 {
+		t.Errorf("three found jobs at one board are one board read: got=%d lists=%v singles=%v", len(got), b.lists, b.singles)
+	}
+	if stats.Read != 3 || stats.Closed != 0 {
+		t.Errorf("stats = %+v", stats)
+	}
+}
+
+func TestResolveFallsBackToTheBoardWhereThereIsNoSingleRead(t *testing.T) {
+	b := newStubBoards(map[string][]string{"ashby:acme": {"1"}})
+	b.noSingle["ashby:acme"] = true
+	got, stats, _ := Resolve(context.Background(), b.fetch, b.one, refsFor("ashby", "acme", "1", "2"), nil, nil)
+
+	if len(got) != 1 || b.lists["ashby:acme"] != 1 {
+		t.Errorf("got=%d lists=%v", len(got), b.lists)
+	}
+	if want := (ResolveStats{Found: 2, Read: 1, Closed: 1, BoardsOK: 1}); stats != want {
+		t.Errorf("stats = %+v, want %+v", stats, want)
+	}
+}
+
+func TestResolveSingleReadErrorIsAFailureNotAClosedJob(t *testing.T) {
+	b := newStubBoards(map[string][]string{"greenhouse:acme": {"1", "2"}})
+	b.singleFail["greenhouse:acme/1"] = true
+	got, stats, problems := Resolve(context.Background(), b.fetch, b.one, refsFor("greenhouse", "acme", "1", "2"), nil, nil)
+
+	if len(got) != 1 || got[0].ID != "greenhouse:acme/2" {
+		t.Errorf("the other job is still read: %+v", got)
+	}
+	if len(problems) != 1 || !strings.Contains(problems[0], "acme/1") {
+		t.Errorf("problems = %v", problems)
+	}
+	if want := (ResolveStats{Found: 2, Read: 1, BoardsFail: 1, FailedJobs: 1}); stats != want {
+		t.Errorf("stats = %+v, want %+v", stats, want)
+	}
+	if stats.Read+stats.Closed+stats.FailedJobs != stats.Found {
+		t.Error("every found posting must be accounted for")
+	}
+}
+
+// Both ways of reading must hand back the same postings (ADR-0038).
+func TestResolveBothWaysGiveTheSamePostings(t *testing.T) {
+	open := map[string][]string{"greenhouse:acme": {"1", "2", "3"}}
+	refs := refsFor("greenhouse", "acme", "1", "2")
+
+	b1 := newStubBoards(open)
+	single, _, _ := Resolve(context.Background(), b1.fetch, b1.one, refs, nil, nil)
+	b2 := newStubBoards(open)
+	whole, _, _ := Resolve(context.Background(), b2.fetch, nil, refs, nil, nil)
+
+	if b1.singles["greenhouse:acme"] != 2 || b2.lists["greenhouse:acme"] != 1 {
+		t.Fatalf("the two runs must use the two ways: %v %v", b1.singles, b2.lists)
+	}
+	if !reflect.DeepEqual(single, whole) {
+		t.Errorf("one by one %+v != whole board %+v", single, whole)
 	}
 }
 

@@ -88,7 +88,7 @@ func cmdRun(ctx context.Context, logger *slog.Logger, args []string) (runErr err
 		if err != nil {
 			problems = append(problems, "Web search was skipped: "+err.Error())
 		} else {
-			sk, sd, sp := searchStage(ctx, logger, cfg, st, pre, searcher, boardFetcher(client), *dryRun, time.Now(), os.Stdout)
+			sk, sd, sp := searchStage(ctx, logger, cfg, st, pre, searcher, boardFetcher(client), postingReader(client), *dryRun, time.Now(), os.Stdout)
 			kept, dropped, problems = append(kept, sk...), append(dropped, sd...), append(problems, sp...)
 		}
 	}

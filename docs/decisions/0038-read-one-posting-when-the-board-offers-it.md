@@ -1,6 +1,6 @@
 ## ADR-0038: Read one posting when the job board offers it
 
-**Status:** Accepted (the decision is made; it will be built in a separate, small change after the search phase)
+**Status:** Accepted and built
 
 **Context:** When a web search finds a job on a known job board ([ADR-0037](0037-find-jobs-by-search-read-them-through-board-apis.md)), job-radar reads it through the board's official API. Today it does that by downloading the company's **whole board** (every open job) and picking out the one found. That has three costs: it moves more data than needed, it fails outright on very large boards (an aggregator's Lever board is over the 10 MB response limit of [ADR-0022](0022-hard-limits-on-outbound-requests-enforced.md)), and "this job is closed" is only inferred from the job being missing from a list. In a test, about half of the links a search returned pointed at jobs that were already closed.
 
