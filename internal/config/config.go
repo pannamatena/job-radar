@@ -82,6 +82,10 @@ type Config struct {
 	// turn email off.
 	Email Email `yaml:"email"`
 
+	// Search configures finding jobs by web search (ADR-0037). Off by default
+	// because searching costs money.
+	Search Search `yaml:"search"`
+
 	// Notice records that the user has read the security-and-privacy notice.
 	Notice Notice `yaml:"notice"`
 
@@ -359,6 +363,7 @@ func (c *Config) applyDefaults() {
 	if c.LLM.MonthlySpendCapUSD == 0 {
 		c.LLM.MonthlySpendCapUSD = 5
 	}
+	c.Search.applyDefaults()
 }
 
 // Validate collects every problem and reports them together.
@@ -416,6 +421,9 @@ func (c *Config) Validate() error {
 		problems = append(problems, c.LLM.validate()...)
 	}
 	problems = append(problems, c.Email.validate()...)
+	if c.Search.Enabled {
+		problems = append(problems, c.Search.validate(c)...)
+	}
 
 	if len(problems) == 0 {
 		return nil

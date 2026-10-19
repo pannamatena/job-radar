@@ -33,6 +33,7 @@ By running `job-radar init`, you confirm you've read this page.
 |---|---|---|
 | **Job boards** (Greenhouse, Lever, Ashby) | A request for their public job list. **No personal data.** | Every run |
 | **AI provider** (e.g. Anthropic) | Your profile, your rubric, your notes on the company, and the job ad text | **Only if you turn on AI scoring.** Your data is handled under that provider's API terms; read them before you switch it on. The free rules scorer sends nothing anywhere. |
+| **AI provider's web search** (e.g. Anthropic) | Only the search queries you wrote in `search.queries`. **Not your profile**, and no personal data. The queries and the results pass through the provider. | **Only if you turn on [web search](finding-jobs-by-search.md).** job-radar never opens a link from a search; it reads job boards through their official APIs only. |
 | **Email** (your job-radar mail account and your main inbox's provider) | Match alerts, the daily digest and problem notices: job titles, companies, scores and short "why"/"gap" notes (which can mention your skill gaps). Your 👍/👎 replies. | Always (email is how job-radar tells you about matches). Ordinary email is not end-to-end encrypted. |
 | **GitHub** | Everything in your private config repository, including your profile and database | If you run job-radar automatically with GitHub Actions |
 
@@ -96,4 +97,4 @@ If you find a security issue in job-radar itself, please **don't open a public i
 
 ---
 
-*This notice explains how job-radar works and how to use it safely. It isn't legal advice, and it doesn't change the LICENSE. Last updated: 2026-10-04.*
+*This notice explains how job-radar works and how to use it safely. It isn't legal advice, and it doesn't change the LICENSE. Last updated: 2026-10-18.*

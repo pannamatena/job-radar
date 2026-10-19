@@ -248,6 +248,12 @@ func cmdReport(ctx context.Context, args []string) error {
 			fmt.Printf("AI cost: ~$%.4f in this period · ~$%.4f this month of your $%.2f cap\n", sum.AICostUSD, spent, cfg.LLM.MonthlySpendCapUSD)
 		}
 	}
+	if cfg.Search.Enabled {
+		spent, err := st.SearchSpendSince(ctx, store.StartOfMonth(time.Now()))
+		if err == nil {
+			fmt.Printf("Web search: ~$%.4f this month of your $%.2f cap\n", spent, cfg.Search.MonthlySpendCapUSD)
+		}
+	}
 	rows, err := st.RecentFeedback(ctx, since)
 	if err != nil {
 		return err

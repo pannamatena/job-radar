@@ -40,6 +40,8 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0034](0034-read-email-replies-over-imap-read-only.md) | Read vote replies over IMAP, read-only, from your own address only | Accepted |
 | [ADR-0035](0035-what-each-email-says-and-when.md) | What each email says, and when it is sent | Accepted |
 | [ADR-0036](0036-teach-the-scorer-with-a-notes-file-you-own.md) | Teach the scorer with a notes file you own, not a provider's hosted memory | Accepted |
+| [ADR-0037](0037-find-jobs-by-search-read-them-through-board-apis.md) | Find jobs by search, read them through the board APIs | Accepted |
+| [ADR-0038](0038-read-one-posting-when-the-board-offers-it.md) | Read one posting when the job board offers it | Accepted |
 
 ## In one sentence each
 
@@ -79,3 +81,5 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0034](0034-read-email-replies-over-imap-read-only.md)** — Replying "1 👍" to an email works, because the tool reads only your own replies, read-only, and nothing else in a reply can make it do anything; the third-party code that reads your mail is copied in and upgraded only by hand.
 - **[ADR-0035](0035-what-each-email-says-and-when.md)** — You hear about a good job once, get a summary once a day, and hear about a problem at most once a day.
 - **[ADR-0036](0036-teach-the-scorer-with-a-notes-file-you-own.md)** — What job-radar learns about you is a text file you own, you approve every line, and `eval` checks it helps, so it works with any provider.
+- **[ADR-0037](0037-find-jobs-by-search-read-them-through-board-apis.md)** — Search finds the links, the job boards' own APIs read the jobs, and a link I don't recognise is only ever shown as text with a warning.
+- **[ADR-0038](0038-read-one-posting-when-the-board-offers-it.md)** — Ask the job board for the one job I found, not its whole catalogue, and treat "not found" as "closed".

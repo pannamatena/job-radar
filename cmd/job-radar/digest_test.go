@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pannamatena/job-radar/internal/config"
+	"github.com/pannamatena/job-radar/internal/notify"
 	"github.com/pannamatena/job-radar/internal/posting"
 	"github.com/pannamatena/job-radar/internal/scorer"
 	"github.com/pannamatena/job-radar/internal/store"
@@ -118,5 +119,50 @@ func TestBuildDigest_GroupsByTrackAndAddsMondaySection(t *testing.T) {
 	// Nothing in the window means nothing to send.
 	if _, n, _ := buildDigest(ctx, cfg, st, tue, tue); n != 0 {
 		t.Errorf("empty window should give 0 jobs, got %d", n)
+	}
+}
+
+func TestDigestCarriesSearchLeadsButNeverAloneAndOnlyWhenSearchIsOn(t *testing.T) {
+	ctx, now := context.Background(), notMonday(time.Now())
+	st := lowFixture(t, t.TempDir(), now)
+	for _, l := range []store.Lead{
+		{URL: "https://news.example.com/job/1", Host: "news.example.com", Title: "A job"},
+		{URL: "https://www.linkedin.com/jobs/view/1", Host: "www.linkedin.com", Title: "Another", Known: true},
+	} {
+		if _, err := st.SaveLead(ctx, l, now.Add(-time.Hour)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cfg := &config.Config{Rules: config.Rules{Thresholds: config.Thresholds{Alert: 4, Digest: 3}}}
+
+	msg, _, err := buildDigest(ctx, cfg, st, now, now.Add(-24*time.Hour))
+	if err != nil || len(msg.Leads) != 0 {
+		t.Fatalf("search is off: no leads in the digest (err=%v, leads=%d)", err, len(msg.Leads))
+	}
+
+	cfg.Search.Enabled = true
+	msg, n, err := buildDigest(ctx, cfg, st, now, now.Add(-24*time.Hour))
+	if err != nil || n != 2 || len(msg.Leads) != 2 {
+		t.Fatalf("n=%d leads=%d err=%v", n, len(msg.Leads), err)
+	}
+	if len(msg.NewSites) != 2 {
+		t.Errorf("both hosts are new: %v", msg.NewSites)
+	}
+	body := notify.RenderText(msg)
+	if !strings.Contains(body, "news[.]example[.]com (unknown site)") || strings.Contains(body, "https://news.example.com") {
+		t.Errorf("the unknown site must be defanged:\n%s", body)
+	}
+
+	// A day with leads but no jobs sends nothing.
+	empty, err := store.Open(filepath.Join(t.TempDir(), "radar.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer empty.Close()
+	if _, err := empty.SaveLead(ctx, store.Lead{URL: "https://x.example/1", Host: "x.example", Title: "t"}, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, n, _ := buildDigest(ctx, cfg, empty, now, now.Add(-24*time.Hour)); n != 0 {
+		t.Errorf("leads alone must not trigger a digest, got n=%d", n)
 	}
 }
