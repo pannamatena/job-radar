@@ -110,6 +110,31 @@ func (g *Greenhouse) Fetch(ctx context.Context) ([]posting.Posting, error) {
 	return out, nil
 }
 
+// FetchOne reads one job by its id. Greenhouse answers 404 for a job that is
+// closed or doesn't exist, which is reported as found == false.
+func (g *Greenhouse) FetchOne(ctx context.Context, jobID string) (posting.Posting, bool, error) {
+	if g.company.Slug == "" {
+		return posting.Posting{}, false, fmt.Errorf("greenhouse: company %q has no slug (board token)", g.company.Name)
+	}
+	endpoint := fmt.Sprintf("%s/%s/jobs/%s", g.base(), url.PathEscape(g.company.Slug), url.PathEscape(jobID))
+
+	resp, err := g.client.Get(ctx, endpoint)
+	if err != nil {
+		return posting.Posting{}, false, fmt.Errorf("greenhouse %q: %w", g.company.Name, err)
+	}
+	if resp.StatusCode == 404 {
+		return posting.Posting{}, false, nil
+	}
+	if resp.StatusCode != 200 {
+		return posting.Posting{}, false, fmt.Errorf("greenhouse %q: unexpected HTTP %d reading one job", g.company.Name, resp.StatusCode)
+	}
+	var job ghJob
+	if err := json.Unmarshal(resp.Body, &job); err != nil {
+		return posting.Posting{}, false, fmt.Errorf("greenhouse %q: parsing response: %w", g.company.Name, err)
+	}
+	return g.normalise(job), true, nil
+}
+
 // filterMeta extracts the facts the shared company filters act on.
 func (g *Greenhouse) filterMeta(job ghJob) filterMeta {
 	depts := make([]string, 0, len(job.Departments))

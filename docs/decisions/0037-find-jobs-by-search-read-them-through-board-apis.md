@@ -22,7 +22,7 @@
 
 **Trade-offs:**
 - Leads from unknown sites are not scored, so the best of them may be missed until the user acts on the warning. That is the price of never reading them.
-- Reading a posting means fetching its company's whole board once, then keeping only the found job. That is one polite request per board, and it reuses code that already works, at the cost of reading more than strictly needed.
+- Reading a posting means fetching its company's whole board once, then keeping only the found job. That is one polite request per board, and it reuses code that already works, at the cost of reading more than strictly needed. [ADR-0038](0038-read-one-posting-when-the-board-offers-it.md) later refined this: where a board can answer for a single job, that is used when few jobs are found there.
 - Search results can be old or already closed. A job that the board no longer lists is dropped, which is also the check that it is still open.
 - A search has a cost and adds a dependency on one provider's tool until a second implementation exists.
 

@@ -101,6 +101,31 @@ func (l *Lever) Fetch(ctx context.Context) ([]posting.Posting, error) {
 	return out, nil
 }
 
+// FetchOne reads one posting by its id. Lever answers 404 for a posting that is
+// closed or doesn't exist, which is reported as found == false.
+func (l *Lever) FetchOne(ctx context.Context, jobID string) (posting.Posting, bool, error) {
+	if l.company.Slug == "" {
+		return posting.Posting{}, false, fmt.Errorf("lever: company %q has no slug", l.company.Name)
+	}
+	endpoint := fmt.Sprintf("%s/%s/%s", l.base(), url.PathEscape(l.company.Slug), url.PathEscape(jobID))
+
+	resp, err := l.client.Get(ctx, endpoint)
+	if err != nil {
+		return posting.Posting{}, false, fmt.Errorf("lever %q: %w", l.company.Name, err)
+	}
+	if resp.StatusCode == 404 {
+		return posting.Posting{}, false, nil
+	}
+	if resp.StatusCode != 200 {
+		return posting.Posting{}, false, fmt.Errorf("lever %q: unexpected HTTP %d reading one posting", l.company.Name, resp.StatusCode)
+	}
+	var job leverJob
+	if err := json.Unmarshal(resp.Body, &job); err != nil {
+		return posting.Posting{}, false, fmt.Errorf("lever %q: parsing response: %w", l.company.Name, err)
+	}
+	return l.normalise(job), true, nil
+}
+
 func (l *Lever) filterMeta(job leverJob) filterMeta {
 	// Department and team both count as "departments" for matching.
 	depts := []string{job.Categories.Department}

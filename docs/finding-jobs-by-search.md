@@ -18,6 +18,9 @@ default because every search costs money (about a cent each, plus a few tokens).
    Postings are then filtered, scored and reported like any other. A job the board
    no longer lists is dropped: search results are often stale (about half were
    closed in testing), and this is how you know a job is still open.
+   Greenhouse and Lever are asked for the one job (a "not found" answer means it
+   is closed); when three or more jobs were found at one board, or the board is
+   Ashby, the board's list is read once instead.
 4. Every other link is a **lead**: it is not read and not scored. Leads appear at
    the end of the digest, written so they can't be clicked by accident (see below).
 

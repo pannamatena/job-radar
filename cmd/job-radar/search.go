@@ -23,7 +23,7 @@ import (
 //
 // Search costs real money, so its spend is recorded even in a dry run.
 func searchStage(ctx context.Context, logger *slog.Logger, cfg *config.Config, st *store.Store, pre *filter.Filter,
-	searcher search.Searcher, fetch search.FetchBoard, dryRun bool, now time.Time, w io.Writer) (kept, dropped []posting.Posting, problems []string) {
+	searcher search.Searcher, fetch search.FetchBoard, one search.FetchOne, dryRun bool, now time.Time, w io.Writer) (kept, dropped []posting.Posting, problems []string) {
 
 	active := cfg.Search.ActiveQueries()
 	if len(active) == 0 {
@@ -71,7 +71,7 @@ func searchStage(ctx context.Context, logger *slog.Logger, cfg *config.Config, s
 		}
 	}
 
-	postings, rs, resolveProblems := search.Resolve(ctx, fetch, found.Refs, cfg.Companies, cfg.Search.IgnoreCompanies)
+	postings, rs, resolveProblems := search.Resolve(ctx, fetch, one, found.Refs, cfg.Companies, cfg.Search.IgnoreCompanies)
 	for _, p := range resolveProblems {
 		logger.Warn("search: " + p)
 	}
@@ -116,5 +116,13 @@ func boardFetcher(client *httpclient.Client) search.FetchBoard {
 			return nil, err
 		}
 		return src.Fetch(ctx)
+	}
+}
+
+// postingReader reads one posting through the shared, polite client. It reports
+// sources.ErrNoSingleRead for a board that can only be read as a whole.
+func postingReader(client *httpclient.Client) search.FetchOne {
+	return func(ctx context.Context, co config.Company, jobID string) (posting.Posting, bool, error) {
+		return sources.ReadOne(ctx, client, co, jobID)
 	}
 }
