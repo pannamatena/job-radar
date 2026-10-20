@@ -46,9 +46,11 @@ func (a *Anthropic) Search(ctx context.Context, query string, opt Options) (Resu
 	if maxUses < 1 {
 		maxUses = 1
 	}
-	tool := anthropic.WebSearchTool20250305Param{
-		MaxUses:        anthropic.Int(maxUses),
-		BlockedDomains: opt.BlockedDomains,
+	tool := anthropic.WebSearchTool20250305Param{MaxUses: anthropic.Int(maxUses)}
+	// The API rejects an empty list ("ambiguous"), and "blocked_domains: []" in
+	// the config is a normal way to say none, so only send it when there is a domain.
+	if len(opt.BlockedDomains) > 0 {
+		tool.BlockedDomains = opt.BlockedDomains
 	}
 	messages := []anthropic.MessageParam{
 		anthropic.NewUserMessage(anthropic.NewTextBlock("Search the web for job postings with this query: " + query)),

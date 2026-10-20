@@ -77,6 +77,29 @@ func TestSearch_CollectsLinksAndUsage(t *testing.T) {
 	}
 }
 
+// "blocked_domains: []" in the config is an empty, non-nil list. The API rejects
+// an empty list as ambiguous, so it must be left out of the request (issue #21).
+func TestSearch_LeavesOutAnEmptyBlockedList(t *testing.T) {
+	for name, blocked := range map[string][]string{"empty": {}, "nil": nil} {
+		t.Run(name, func(t *testing.T) {
+			var body map[string]any
+			a := newTestSearcher(t, func(w http.ResponseWriter, r *http.Request) {
+				raw, _ := io.ReadAll(r.Body)
+				_ = json.Unmarshal(raw, &body)
+				w.Header().Set("Content-Type", "application/json")
+				io.WriteString(w, reply("end_turn", 1, "https://example.com/a"))
+			})
+			if _, err := a.Search(context.Background(), "q", Options{MaxSearches: 1, BlockedDomains: blocked}); err != nil {
+				t.Fatal(err)
+			}
+			tool := body["tools"].([]any)[0].(map[string]any)
+			if v, present := tool["blocked_domains"]; present {
+				t.Errorf("blocked_domains must not be sent when there are none, got %v", v)
+			}
+		})
+	}
+}
+
 func TestSearch_ContinuesAPausedTurn(t *testing.T) {
 	var mu sync.Mutex
 	calls := 0
