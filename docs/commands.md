@@ -74,6 +74,19 @@ More about voting in [giving-feedback.md](giving-feedback.md).
 
 More in [evaluation.md](evaluation.md) and [giving-feedback.md](giving-feedback.md).
 
+## Scripts for the cloud run
+
+These are not job-radar commands. They are small shell scripts (`bash`) that come with the
+[automatic cloud run](run-automatically.md) and live in your config folder. They keep
+the database on your computer in step with the cloud copy, **only if you also run
+job-radar locally**. Read the warnings in [run-automatically.md](run-automatically.md#the-two-copies-of-your-database)
+before using them. If you only use the schedule, you never need them.
+
+| Script | What it does |
+|---|---|
+| `scripts/state-pull.sh` | 🌐 Downloads the cloud database to `radar.db`. It refuses if your local `radar.db` has changes you never pushed; `--discard` replaces it anyway. |
+| `scripts/state-push.sh` | 🌐 Sends your `radar.db` to the cloud, but only if the cloud copy is still the version you pulled. If a scheduled run happened meanwhile it prints `REFUSED` and sends nothing. |
+
 ## Common recipes
 
 ```sh
@@ -92,4 +105,7 @@ job-radar run --dry-run
 
 # What have I spent on the AI this month?
 job-radar report
+
+# I also run job-radar on my computer, and it runs in the cloud too:
+scripts/state-pull.sh && job-radar run && scripts/state-push.sh
 ```

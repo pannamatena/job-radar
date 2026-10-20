@@ -1,0 +1,70 @@
+name: Release
+
+# Pushing a tag like v0.1.1 builds the binaries, checksums and signs them, and
+# publishes a GitHub release. Written by hand on purpose: see ADR-0039.
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write         # create the release
+  id-token: write         # sign the build attestation
+  attestations: write     # store the build attestation
+  artifact-metadata: write
+
+jobs:
+  release:
+    name: Build, sign and publish
+    runs-on: ubuntu-latest
+    steps:
+      # Third-party actions are pinned to a full commit SHA (ADR-0018).
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # needed to check the tag is on main
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27'
+          check-latest: true
+
+      - name: Only release commits that are on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME is not on main. Releases are only built from main."
+            exit 1
+          fi
+
+      - name: Test
+        run: go vet ./... && go test ./...
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          mkdir dist
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
+            os="${target%/*}"; arch="${target#*/}"
+            out="dist/job-radar_${os}_${arch}"
+            [ "$os" = windows ] && out="$out.exe"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath \
+              -ldflags "-s -w -X github.com/pannamatena/job-radar/internal/version.Version=${version}" \
+              -o "$out" ./cmd/job-radar
+          done
+          (cd dist && sha256sum job-radar_* > SHA256SUMS && cat SHA256SUMS)
+
+      - name: Sign the build (attestation)
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-checksums: dist/SHA256SUMS
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Versions below 1.0.0 are published as pre-releases: usable, not yet stable.
+          pre=""
+          case "${GITHUB_REF_NAME#v}" in 0.*) pre="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes $pre
