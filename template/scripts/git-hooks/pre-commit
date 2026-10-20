@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# Stops you committing secrets or your database by mistake, in your PRIVATE config repo.
+#   1. Refuses .env files, databases, backups and the sync marker, even if you forced
+#      them past .gitignore with `git add -f`.
+#   2. Runs gitleaks (if installed) over what you are about to commit, to catch an
+#      API key or password pasted into any file.
+# Turn it on once, inside your config folder:  git config core.hooksPath scripts/git-hooks
+set -euo pipefail
+
+staged="$(git diff --cached --name-only --diff-filter=ACM)"
+if [ -n "$staged" ]; then
+	blocked="$(printf '%s\n' "$staged" | grep -E '(^|/)\.env($|\.)|\.db($|-wal$|-shm$|\.bak$)|(^|/)\.radar-state$|\.bak[0-9]*$' || true)"
+	if [ -n "$blocked" ]; then
+		echo "✖ pre-commit: refusing to commit secrets, your database or backups:" >&2
+		printf '%s\n' "$blocked" | sed 's/^/      /' >&2
+		echo "  These are git-ignored on purpose. Unstage with:  git reset HEAD <file>" >&2
+		exit 1
+	fi
+fi
+
+if command -v gitleaks >/dev/null 2>&1; then
+	gitleaks git --pre-commit --staged --redact --no-banner . \
+		|| { echo "✖ pre-commit: gitleaks found a possible secret in your staged changes (see above)." >&2; exit 1; }
+else
+	echo "⚠ pre-commit: gitleaks is not installed, so the secret scan was skipped. Install it: brew install gitleaks" >&2
+fi

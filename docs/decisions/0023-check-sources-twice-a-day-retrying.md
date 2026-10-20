@@ -1,6 +1,6 @@
 ## ADR-0023: Check sources twice a day, retrying only what failed
 
-**Status:** Accepted
+**Status:** Accepted. The twice-a-day schedule is built; the retry run for failed sources is **not implemented yet**, because the next scheduled run re-fetches everything anyway. It will be added if real runs show boards failing often.
 
 **Context:** The first plan checked every source hourly from 07:00 to 22:00 (about 16 times a day). Company job boards rarely change more than once or twice a day, so most of those checks would find nothing new. That puts load on sites for no benefit, uses more of the free CI minutes, and makes the tool look less considerate.
 

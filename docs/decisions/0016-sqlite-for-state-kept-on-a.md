@@ -1,6 +1,6 @@
 ## ADR-0016: SQLite for state, kept on a `state` branch
 
-**Status:** Proposed (the persistence method in CI is to be confirmed when building)
+**Status:** Accepted. The `state` branch was confirmed when building the cloud run: see [ADR-0040](0040-run-in-the-cloud-verified-binary-state-branch.md).
 
 **Context:** The tool must remember which postings it has seen, their scores, alerts sent and feedback, between scheduled runs.
 

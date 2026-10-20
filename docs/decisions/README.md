@@ -19,7 +19,7 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0013](0013-telegram-as-the-default-instant-channel.md) | Telegram as the default instant channel, email as the fallback | Superseded by ADR-0024 |
 | [ADR-0014](0014-open-source-with-all-personal-data.md) | Open source, with all personal data in user config | Accepted |
 | [ADR-0015](0015-two-repos-per-user-public-code.md) | Two repos per user (public code, private config), run on GitHub Actions | Accepted |
-| [ADR-0016](0016-sqlite-for-state-kept-on-a.md) | SQLite for state, kept on a `state` branch | Proposed |
+| [ADR-0016](0016-sqlite-for-state-kept-on-a.md) | SQLite for state, kept on a `state` branch | Accepted (confirmed by ADR-0040) |
 | [ADR-0017](0017-numbered-sql-migrations-embedded-in-the.md) | Numbered SQL migrations, embedded in the binary, written by hand | Accepted |
 | [ADR-0018](0018-catch-personal-data-and-secrets-before.md) | Catch personal data and secrets before they're pushed, not after | Accepted |
 | [ADR-0019](0019-email-access-through-a-separate-inbox.md) | Email access through a separate inbox, with alerts auto-forwarded | Accepted |
@@ -42,6 +42,8 @@ Each record explains one decision: the problem, the options, the choice and what
 | [ADR-0036](0036-teach-the-scorer-with-a-notes-file-you-own.md) | Teach the scorer with a notes file you own, not a provider's hosted memory | Accepted |
 | [ADR-0037](0037-find-jobs-by-search-read-them-through-board-apis.md) | Find jobs by search, read them through the board APIs | Accepted |
 | [ADR-0038](0038-read-one-posting-when-the-board-offers-it.md) | Read one posting when the job board offers it | Accepted |
+| [ADR-0039](0039-build-releases-with-a-hand-written-workflow.md) | Build releases with a hand-written workflow, not GoReleaser | Accepted |
+| [ADR-0040](0040-run-in-the-cloud-verified-binary-state-branch.md) | Run in the cloud with a verified program and a `state` branch | Accepted |
 
 ## In one sentence each
 
@@ -83,3 +85,5 @@ Each record explains one decision: the problem, the options, the choice and what
 - **[ADR-0036](0036-teach-the-scorer-with-a-notes-file-you-own.md)** — What job-radar learns about you is a text file you own, you approve every line, and `eval` checks it helps, so it works with any provider.
 - **[ADR-0037](0037-find-jobs-by-search-read-them-through-board-apis.md)** — Search finds the links, the job boards' own APIs read the jobs, and a link I don't recognise is only ever shown as text with a warning.
 - **[ADR-0038](0038-read-one-posting-when-the-board-offers-it.md)** — Ask the job board for the one job I found, not its whole catalogue, and treat "not found" as "closed".
+- **[ADR-0039](0039-build-releases-with-a-hand-written-workflow.md)** — The thing that builds the program is also something users must trust, so I kept it small and made of GitHub's own parts, and I can swap in a bigger tool later without users noticing.
+- **[ADR-0040](0040-run-in-the-cloud-verified-binary-state-branch.md)** — Download the program only if it provably came from the release workflow, keep one database in one place, and never let the log or a crash lose or leak the user's data.

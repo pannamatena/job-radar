@@ -1,0 +1,135 @@
+name: job-radar
+
+# Runs job-radar twice a day in YOUR private repo. Your profile, rubric and
+# config.yaml sit in this repo; the database sits on the `state` branch.
+# What each step does is explained in docs/run-automatically.md.
+on:
+  schedule:
+    - cron: '15 8,16 * * *'   # UTC. GitHub may start it a few minutes late.
+  workflow_dispatch:
+    inputs:
+      start_fresh:
+        description: 'FIRST RUN ONLY: start with an empty database (every job will look new)'
+        type: boolean
+        default: false
+
+# Never two runs at once: they would both write the state branch.
+concurrency:
+  group: job-radar
+  cancel-in-progress: false
+
+# Only needed to write the `state` branch.
+permissions:
+  contents: write
+
+env:
+  JOB_RADAR_REPO: pannamatena/job-radar   # where the released program comes from
+  JOB_RADAR_SERIES: '0.1'                 # follows 0.1.x patch releases; change by hand for a new minor/major
+  JOB_RADAR_HOME: ${{ github.workspace }}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Third-party actions are pinned to a full commit SHA (ADR-0018).
+      - name: Checkout your config
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Refuse to run in a public repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)" != "true" ]; then
+            echo "::error::This repository is PUBLIC. Your profile and database would be visible to everyone. Make it private (Settings > General > Danger Zone) and run again."
+            exit 1
+          fi
+
+      - name: Download and verify job-radar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Newest released version in our series, e.g. v0.1.3 (no pre-release suffixes).
+          tag=$(gh api "repos/$JOB_RADAR_REPO/releases?per_page=100" \
+            | jq -r --arg s "v$JOB_RADAR_SERIES." \
+              '[.[] | select(.draft == false) | .tag_name
+                | select(startswith($s) and test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))]
+               | sort_by(ltrimstr("v") | split(".") | map(tonumber)) | last // empty')
+          if [ -z "$tag" ]; then
+            echo "::error::No release found for series v$JOB_RADAR_SERIES.x in $JOB_RADAR_REPO"
+            exit 1
+          fi
+          echo "Using job-radar $tag"
+          mkdir -p "$RUNNER_TEMP/bin" && cd "$RUNNER_TEMP/bin"
+          gh release download "$tag" --repo "$JOB_RADAR_REPO" --pattern job-radar_linux_amd64 --pattern SHA256SUMS
+          # 1. The file matches the published checksum.
+          sha256sum --check --ignore-missing SHA256SUMS
+          # 2. GitHub confirms it was built by the release workflow of that repo, from that tag.
+          gh attestation verify job-radar_linux_amd64 --repo "$JOB_RADAR_REPO" \
+            --signer-workflow "$JOB_RADAR_REPO/.github/workflows/release.yml" \
+            --source-ref "refs/tags/$tag"
+          mv job-radar_linux_amd64 job-radar && chmod +x job-radar
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Restore the database
+        id: restore
+        env:
+          REMOTE: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+          START_FRESH: ${{ inputs.start_fresh }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads "$REMOTE" state >/dev/null 2>&1; then
+            git fetch --depth=1 "$REMOTE" state
+            git show FETCH_HEAD:radar.db > radar.db
+            echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+            echo "Restored the database from the state branch."
+          elif [ "$START_FRESH" = "true" ]; then
+            echo "::warning::Starting with an empty database, as you asked."
+          else
+            echo "::error::There is no 'state' branch yet. Add one with your existing database (see docs/run-automatically.md), or run this workflow by hand with 'start_fresh' ticked."
+            exit 1
+          fi
+
+      - name: Run job-radar
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}
+          RADAR_EMAIL_ADDRESS: ${{ secrets.RADAR_EMAIL_ADDRESS }}
+          RADAR_EMAIL_APP_PASSWORD: ${{ secrets.RADAR_EMAIL_APP_PASSWORD }}
+        # The readable report (job titles, scores, reasons) goes to /dev/null so it
+        # never lands in the Actions log. The log keeps counts, ids and errors (stderr).
+        run: job-radar run > /dev/null
+
+      # Runs even if the step above failed: a run that crashed after sending
+      # emails must still record that, or the next run would email them again.
+      - name: Save the database
+        if: ${{ always() && steps.restore.outcome == 'success' && hashFiles('radar.db') != '' }}
+        env:
+          REMOTE: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+          RESTORED: ${{ steps.restore.outputs.sha }}   # the version this run started from
+        run: |
+          set -euo pipefail
+          # Keep the previous copy for one run, so a bad run can be rolled back.
+          if git ls-remote --exit-code --heads "$REMOTE" state >/dev/null 2>&1; then
+            git fetch --depth=1 "$REMOTE" state
+            git push --force "$REMOTE" FETCH_HEAD:refs/heads/state-previous
+          fi
+          # The new state is a single commit with just the database.
+          dir=$(mktemp -d)
+          cp radar.db "$dir/"
+          cd "$dir"
+          git init -q -b state
+          git add radar.db
+          git -c user.name=job-radar -c user.email=job-radar@users.noreply.github.com \
+            commit -q -m "State after run ${{ github.run_id }}"
+          # Overwrite `state` only if nobody changed it during this run (for example,
+          # you pushed from your computer). If someone did, keep this run's database
+          # on `state-conflict` instead of erasing theirs, and fail loudly.
+          if ! git push --force-with-lease="state:$RESTORED" "$REMOTE" state; then
+            git push --force "$REMOTE" state:refs/heads/state-conflict
+            echo "::error::The state branch changed while this run was going. This run's database was saved to 'state-conflict' instead. See docs/run-automatically.md, 'If a push and a run collide'."
+            exit 1
+          fi
