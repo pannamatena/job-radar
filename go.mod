@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/anthropics/anthropic-sdk-go v1.80.0
 	github.com/emersion/go-imap/v2 v2.0.0-beta.8
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.60.1
 )
